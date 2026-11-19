@@ -36,3 +36,40 @@ def config_sources(ctx: Context) -> list[dict[str, Any]]:
 
 def server_names(ctx: Context) -> list[str]:
     return sorted({name for s in config_sources(ctx) for name in s["servers"]})
+
+
+DEPRECATED_TRANSPORTS = ("sse",)
+
+
+def target(server: dict[str, Any]) -> str:
+    if isinstance(server.get("url"), str):
+        return str(server["url"])
+    command = server.get("command")
+    args = server.get("args")
+    parts = [str(command)] if isinstance(command, str) else []
+    parts += [str(a) for a in args] if isinstance(args, list) else []
+    return " ".join(parts)
+
+
+def collect(ctx: Context) -> dict[str, Any]:
+    by_target: dict[str, set[str]] = {}
+    deprecated: list[dict[str, str]] = []
+    for source in config_sources(ctx):
+        for name, server in sorted(source["servers"].items()):
+            if not isinstance(server, dict):
+                continue
+            key = ctx.redact(target(server))
+            if key:
+                by_target.setdefault(key, set()).add(name)
+            transport = str(server.get("type", ""))
+            if transport in DEPRECATED_TRANSPORTS:
+                deprecated.append({"server": name, "transport": transport})
+    return {
+        "servers": server_names(ctx),
+        "duplicates": [
+            {"target": t, "servers": sorted(names)}
+            for t, names in sorted(by_target.items())
+            if len(names) > 1
+        ],
+        "deprecated_transport": sorted(deprecated, key=lambda d: d["server"]),
+    }

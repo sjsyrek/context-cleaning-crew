@@ -64,10 +64,12 @@ def available_version(market: dict[str, Any], plugin: str) -> str:
     return ""  # remote source: not knowable from the clone
 
 
-def collect(ctx: Context) -> dict[str, Any]:
-    refreshed = False
-    if ctx.refresh_marketplaces:
-        refreshed = ctx.runner.run(REFRESH).returncode == 0
+def refresh(ctx: Context) -> bool:
+    """Refresh marketplace clones; must run before anything reads plugin or marketplace state."""
+    return ctx.refresh_marketplaces and ctx.runner.run(REFRESH).returncode == 0
+
+
+def collect(ctx: Context, refreshed: bool) -> dict[str, Any]:
     markets = marketplaces(ctx)
     installs = installed(ctx)
 

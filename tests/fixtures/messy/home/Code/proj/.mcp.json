@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "github-sse": {
+      "type": "sse",
+      "url": "https://api.example.invalid/mcp"
+    }
+  }
+}

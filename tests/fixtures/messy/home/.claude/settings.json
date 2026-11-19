@@ -28,5 +28,28 @@
     "beads@beads-marketplace": true,
     "ghost@nowhere": true,
     "code-simplifier@claude-plugins-official": true
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bd prime"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/guard.sh"
+          }
+        ]
+      }
+    ]
   }
 }

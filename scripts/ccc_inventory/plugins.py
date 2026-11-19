@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from .context import Context, read_json_object
+from .cost import plugin_cost
 from .settings import SettingsFile
 
 
@@ -35,6 +36,7 @@ def collect(ctx: Context, files: list[SettingsFile]) -> dict[str, Any]:
                 "scopes": sorted({str(i.get("scope", "")) for i in installs[pid] if isinstance(i, dict)}),
                 "versions": sorted({str(i.get("version", "")) for i in installs[pid] if isinstance(i, dict)}),
                 "enabled": enabled.get(pid, False),
+                "cost": plugin_cost(ctx, pid),
             }
             for pid in sorted(installs)
         ],

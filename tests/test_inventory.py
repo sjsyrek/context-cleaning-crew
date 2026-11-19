@@ -277,3 +277,70 @@ class TrackerCountsTest(unittest.TestCase):
         counts = manifest()["counts"]
         self.assertEqual(counts[0]["output"], "")
         self.assertEqual(counts[0]["status"], "not run")
+
+
+DETAILS = """beads 1.3.4
+  Source: beads@beads-marketplace
+
+Component inventory
+  Skills (2)  beads, list
+  Hooks (1)
+
+Projected token cost
+  Always-on:   ~1.2k tok   added to every session
+
+Per-component (rounded)
+  component  always-on  on-invoke
+  beads           ~900      ~5.6k
+  list            ~300       ~220
+"""
+
+
+class PluginCostTest(unittest.TestCase):
+    def test_token_cost_is_parsed_from_plugin_details(self) -> None:
+        runner = FakeRunner(
+            {("claude", "plugin", "details", "beads@beads-marketplace"): CommandResult(0, DETAILS)}
+        )
+        m = build_manifest(Context(home=FIXTURE_HOME, cwd=FIXTURE_CWD, runner=runner))
+        cost = {p["id"]: p["cost"] for p in m["plugins"]["installed"]}
+        self.assertEqual(cost["beads@beads-marketplace"]["always_on"], 1200)
+        self.assertEqual(
+            cost["beads@beads-marketplace"]["components"],
+            [
+                {"component": "beads", "always_on": 900, "on_invoke": 5600},
+                {"component": "list", "always_on": 300, "on_invoke": 220},
+            ],
+        )
+
+    def test_cost_is_marked_not_checked_offline(self) -> None:
+        cost = {p["id"]: p["cost"] for p in manifest()["plugins"]["installed"]}
+        self.assertEqual(cost["beads@beads-marketplace"], {"status": "not checked"})
+
+
+class HooksTest(unittest.TestCase):
+    def test_context_injecting_hooks_are_marked(self) -> None:
+        hooks = {(h["event"], h["command"]): h for h in manifest()["hooks"]}
+        self.assertTrue(hooks[("SessionStart", "bd prime")]["injects_context"])
+        self.assertFalse(hooks[("PreToolUse", "~/.claude/hooks/guard.sh")]["injects_context"])
+        self.assertEqual(hooks[("PreToolUse", "~/.claude/hooks/guard.sh")]["matcher"], "Bash")
+
+
+class SkillUsageTest(unittest.TestCase):
+    def test_usage_counts_and_last_used_dates_are_recorded(self) -> None:
+        usage = {u["skill"]: u for u in manifest()["usage"]["skills"]}
+        self.assertEqual(
+            usage["old-council"], {"skill": "old-council", "count": 3, "last_used": "2023-11-14"}
+        )
+
+
+class McpServersTest(unittest.TestCase):
+    def test_servers_with_the_same_url_are_grouped_as_duplicates(self) -> None:
+        dupes = manifest()["mcp"]["duplicates"]
+        self.assertEqual(
+            dupes, [{"target": "https://api.example.invalid/mcp", "servers": ["github", "github-sse"]}]
+        )
+
+    def test_deprecated_sse_transport_is_flagged(self) -> None:
+        self.assertEqual(
+            manifest()["mcp"]["deprecated_transport"], [{"server": "github-sse", "transport": "sse"}]
+        )
