@@ -1,0 +1,17 @@
+{
+  "description": "After a Claude Code update, suggest one report run. Prints nothing on ordinary starts.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/update_check.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
