@@ -47,7 +47,10 @@ def collect_dir(ctx: Context, directory: Path) -> dict[str, Any]:
     }
 
 
-def collect(ctx: Context) -> dict[str, Any]:
+def memory_dirs(ctx: Context) -> list[Path]:
     root = ctx.claude_dir / "projects"
-    dirs = sorted(p for p in root.glob("*/memory") if p.is_dir()) if root.is_dir() else []
-    return {"dirs": [collect_dir(ctx, d) for d in dirs]}
+    return sorted(p for p in root.glob("*/memory") if p.is_dir()) if root.is_dir() else []
+
+
+def collect(ctx: Context) -> dict[str, Any]:
+    return {"dirs": [collect_dir(ctx, d) for d in memory_dirs(ctx)]}

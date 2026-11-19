@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -22,6 +24,7 @@ class Context:
     secret_patterns: tuple[Pattern, ...] = ()
     refresh_marketplaces: bool = False  # writes the local marketplace clones
     run_trackers: bool = False  # runs tracker CLIs (e.g. `bd stats`) in the working tree
+    which: Callable[[str], str | None] = shutil.which  # looks a tool up on PATH; never runs it
     live: bool = True  # home is the running user's: `claude plugin ...` and CLI probes describe it
 
     NOT_LIVE = "not checked: not the live setup"

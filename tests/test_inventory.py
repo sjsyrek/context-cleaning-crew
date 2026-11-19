@@ -443,5 +443,64 @@ class NotLiveSetupTest(unittest.TestCase):
         self.assertFalse(json.loads(done.stdout)["live_setup"])
 
 
+def fake_which(installed: set[str]) -> Any:
+    return lambda name: f"/usr/local/bin/{name}" if name in installed else None
+
+
+class StalenessFactsTest(unittest.TestCase):
+    """Cheap, read-only facts the memory curator checks memory claims against."""
+
+    def test_tools_named_in_memory_are_looked_up_on_path_without_running_them(self) -> None:
+        runner = FakeRunner({})
+        ctx = Context(home=FIXTURE_HOME, cwd=FIXTURE_CWD, runner=runner, which=fake_which({"bd", "npm"}))
+        tools = {t["name"]: t for t in build_manifest(ctx)["facts"]["tools"]}
+        self.assertEqual(sorted(tools), ["bd", "frobnicatectl", "npm"])
+        self.assertTrue(tools["bd"]["on_path"])
+        self.assertFalse(tools["frobnicatectl"]["on_path"])
+        self.assertEqual(
+            tools["frobnicatectl"]["mentioned_in"], ["~/.claude/projects/-home-Code-proj/memory/tooling.md"]
+        )
+        live_probes = {("claude", "plugin", "details"), ("bd", "--version")}
+        self.assertEqual(
+            [c for c in runner.calls if tuple(c[:3]) not in live_probes and tuple(c[:2]) not in live_probes],
+            [],
+        )
+
+    def test_git_remotes_of_the_working_tree_are_read_from_its_config_file(self) -> None:
+        import shutil
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / "home"
+            shutil.copytree(FIXTURE_HOME, home)
+            git = home / "Code" / "proj" / ".git"
+            git.mkdir()
+            (git / "config").write_text(
+                '[core]\n\tbare = false\n[remote "origin"]\n'
+                "\turl = https://x:ghp_FAKEFAKEFAKEFAKEFAKEFAKE1234@example.invalid/proj.git\n"
+                '[remote "backup"]\n\turl = ~/backups/proj.git\n'
+            )
+            ctx = Context(home=home, cwd=home / "Code" / "proj", runner=FakeRunner({}))
+            facts = build_manifest(ctx)["facts"]
+        self.assertEqual(
+            facts["git"],
+            [
+                {
+                    "repo": "~/Code/proj",
+                    "remotes": [
+                        {"name": "backup", "url": "~/backups/proj.git"},
+                        {
+                            "name": "origin",
+                            "url": "https://x:<redacted:github-token>@example.invalid/proj.git",
+                        },
+                    ],
+                }
+            ],
+        )
+
+    def test_a_working_tree_without_git_has_no_git_facts(self) -> None:
+        self.assertEqual(manifest()["facts"]["git"], [])
+
+
 if __name__ == "__main__":
     unittest.main()

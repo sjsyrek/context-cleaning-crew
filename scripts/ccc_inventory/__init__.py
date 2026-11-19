@@ -7,6 +7,7 @@ from typing import Any
 from . import (
     counts,
     drift,
+    facts,
     hooks,
     instructions,
     mcp,
@@ -45,6 +46,7 @@ def build_manifest(ctx: Context) -> dict[str, Any]:
         "instructions": instructions.collect(ctx, rules),
         "removed_tool_refs": removed_tools.collect(ctx),
         "memory": memory.collect(ctx),
+        "facts": facts.collect(ctx),
         "marketplaces": drift.marketplace_summary(ctx),
         "drift": drift.collect(ctx, refreshed),
         "overlap": overlap.collect(ctx),
