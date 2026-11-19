@@ -1,0 +1,12 @@
+schema_version: "1.0"
+name: 02-quick-plan-card
+description: A trigger phrase runs quick mode, which stops at a numbered plan card grouped by category, without changing anything.
+tags: [tier1, plan-card]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "What's eating my context? Clean up my Claude Code config. My setup to look at is the copy in ./audit-home, working tree ./audit-home/Code/proj."
+  max_turns: 40
+  timeout_seconds: 1200
+  allowed_tools: [Skill, Read, Glob, Grep, Bash, Write]
+runs: 1

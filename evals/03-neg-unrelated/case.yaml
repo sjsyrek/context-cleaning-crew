@@ -1,0 +1,12 @@
+schema_version: "1.0"
+name: 03-neg-unrelated
+description: Should not fire on an unrelated question about a file in the workspace.
+tags: [tier1, negative]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: "In ./audit-home/Code/proj/CLAUDE.md, how many numbered steps does the release procedure have? Just the number."
+  max_turns: 10
+  timeout_seconds: 300
+  allowed_tools: [Skill, Read, Glob, Grep, Bash]
+runs: 1

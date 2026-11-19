@@ -1,0 +1,13 @@
+schema_version: "1.0"
+name: 01-report-read-only
+description: Report mode on a copied fixture home finds the planted problems, never echoes a secret, changes nothing in the audited tree, and writes a report.
+tags: [tier1, report]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    /context-cleaning-crew:context-cleaning-crew report — audit the setup copied at ./audit-home (its working tree is ./audit-home/Code/proj). When the report is written, also copy it to ./report.md, then run `cd audit-home && shasum -a 256 -c ../.audit-home.sha256 --quiet && echo TREE-UNCHANGED`.
+  max_turns: 40
+  timeout_seconds: 1200
+  allowed_tools: [Skill, Read, Glob, Grep, Bash, Write]
+runs: 1
