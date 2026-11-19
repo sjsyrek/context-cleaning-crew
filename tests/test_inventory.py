@@ -531,6 +531,14 @@ class RemoteUrlCredentialsTest(unittest.TestCase):
             mask_url("https://h.example.invalid/a@b/p.git"), "https://h.example.invalid/a@b/p.git"
         )
         self.assertEqual(mask_url("~/backups/proj.git"), "~/backups/proj.git")
+        for password in ("p?x", "p#x", "p?x#y@z"):
+            self.assertEqual(
+                mask_url(f"https://u:{password}@h.example.invalid/p.git"),
+                "https://<redacted:userinfo>@h.example.invalid/p.git",
+            )
+        self.assertEqual(
+            mask_url("https://u:p@h.example.invalid"), "https://<redacted:userinfo>@h.example.invalid"
+        )
 
 
 if __name__ == "__main__":
