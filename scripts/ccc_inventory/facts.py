@@ -22,13 +22,16 @@ AFTER = re.compile(
 BEFORE = re.compile(r"\b(?:install(?:ed)?|brew install|npm install -g|pipx install)\s+`$")
 REMOTE = re.compile(r'^\[remote "([^"]+)"\]\s*$')
 URL = re.compile(r"^\s*url\s*=\s*(.+?)\s*$")
-USERINFO = re.compile(r"^([A-Za-z][A-Za-z0-9+.-]*://)[^/@\s]+@")
+USERINFO = re.compile(r"(\b[A-Za-z][A-Za-z0-9+.-]*://)[^/?#]*@")
 QUERY = re.compile(r"\?.*$")
 
 
 def mask_url(url: str) -> str:
     """Drop credentials in any format: the userinfo of a `scheme://` URL, and any query string.
-    scp-style `git@host:path` has a user name only and is kept."""
+
+    Unanchored, so a quoted git value (`"https://…"`) is masked too; greedy up to the last `@`
+    before the path, so a password containing `@` or spaces is masked whole. scp-style
+    `git@host:path` has a user name only and is kept."""
     return QUERY.sub("?<redacted:query>", USERINFO.sub(r"\1<redacted:userinfo>@", url))
 
 

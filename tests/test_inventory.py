@@ -519,6 +519,17 @@ class RemoteUrlCredentialsTest(unittest.TestCase):
             "https://h.example.invalid/p.git?<redacted:query>",
         )
         self.assertEqual(mask_url("git@github.com:owner/repo.git"), "git@github.com:owner/repo.git")
+        self.assertEqual(
+            mask_url('"https://u:p@h.example.invalid/p.git"'),
+            '"https://<redacted:userinfo>@h.example.invalid/p.git"',
+        )
+        self.assertEqual(
+            mask_url("https://u:p@ss w@rd@h.example.invalid/p.git"),
+            "https://<redacted:userinfo>@h.example.invalid/p.git",
+        )
+        self.assertEqual(
+            mask_url("https://h.example.invalid/a@b/p.git"), "https://h.example.invalid/a@b/p.git"
+        )
         self.assertEqual(mask_url("~/backups/proj.git"), "~/backups/proj.git")
 
 
