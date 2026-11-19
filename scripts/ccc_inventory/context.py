@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .redact import Pattern, redact
 from .runner import Runner
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
@@ -17,10 +18,15 @@ class Context:
     home: Path
     cwd: Path
     runner: Runner
+    secret_patterns: tuple[Pattern, ...] = ()
 
     @property
     def claude_dir(self) -> Path:
         return self.home / ".claude"
+
+    def redact(self, text: str) -> str:
+        """Every free-text manifest field goes through this, so no secret value is ever echoed."""
+        return redact(text, self.secret_patterns)
 
     def display(self, path: Path) -> str:
         """Render a path relative to home as `~/...` so manifests are portable and diffable."""

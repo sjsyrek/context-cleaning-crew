@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import Any
 
 from . import instructions, mcp, memory, permissions, plugins, removed_tools, secrets, settings
@@ -13,7 +12,7 @@ SCHEMA_VERSION = 1
 __all__ = ["SCHEMA_VERSION", "Context", "build_manifest"]
 
 
-def build_manifest(ctx: Context, extra_secret_patterns: Sequence[str] = ()) -> dict[str, Any]:
+def build_manifest(ctx: Context) -> dict[str, Any]:
     files = settings.settings_files(ctx)
     plugin_section = plugins.collect(ctx, files)
     installed_names = plugins.plugin_names([p["id"] for p in plugin_section["installed"]])
@@ -28,5 +27,5 @@ def build_manifest(ctx: Context, extra_secret_patterns: Sequence[str] = ()) -> d
         "instructions": instructions.collect(ctx, rules),
         "removed_tool_refs": removed_tools.collect(ctx),
         "memory": memory.collect(ctx),
-        "secrets": secrets.collect(ctx, files, extra_secret_patterns),
+        "secrets": secrets.collect(ctx, files, instructions.load_path(ctx)),
     }

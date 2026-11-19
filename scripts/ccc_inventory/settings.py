@@ -46,7 +46,9 @@ def collect(ctx: Context, files: list[SettingsFile]) -> dict[str, Any]:
         if isinstance(env, dict):
             for key in sorted(env):
                 if REASONING_ENV.search(key):
-                    reasoning_env.append({"key": key, "value": str(env[key]), "file": ctx.display(f.path)})
+                    reasoning_env.append(
+                        {"key": key, "value": ctx.redact(str(env[key])), "file": ctx.display(f.path)}
+                    )
         for key in ("model", "effortLevel", "outputStyle"):
             if isinstance(f.data.get(key), str):
                 model[key] = f.data[key]

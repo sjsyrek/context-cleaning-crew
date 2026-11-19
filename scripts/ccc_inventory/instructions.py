@@ -42,12 +42,12 @@ def prose_lines(text: str) -> Iterator[tuple[int, str]]:
             yield number, line
 
 
-def directives(display: str, text: str) -> list[dict[str, Any]]:
+def directives(ctx: Context, display: str, text: str) -> list[dict[str, Any]]:
     found: list[dict[str, Any]] = []
     for number, line in prose_lines(text):
         stripped = LIST_MARKER.sub("", line).strip()
         if stripped and not stripped.startswith("#") and DIRECTIVE.search(stripped):
-            found.append({"path": display, "line": number, "text": stripped})
+            found.append({"path": display, "line": number, "text": ctx.redact(stripped)})
     return found
 
 
@@ -58,7 +58,7 @@ def deny_command(rule: Rule) -> str:
     return rule.prefix() or ""
 
 
-def deny_conflicts(display: str, text: str, denies: list[Rule]) -> list[dict[str, Any]]:
+def deny_conflicts(ctx: Context, display: str, text: str, denies: list[Rule]) -> list[dict[str, Any]]:
     conflicts: list[dict[str, Any]] = []
     for rule in denies:
         command = deny_command(rule)
@@ -71,15 +71,15 @@ def deny_conflicts(display: str, text: str, denies: list[Rule]) -> list[dict[str
                     {
                         "path": display,
                         "line": number,
-                        "text": line.strip(),
-                        "deny_rule": rule.text,
+                        "text": ctx.redact(line.strip()),
+                        "deny_rule": ctx.redact(rule.text),
                         "deny_file": rule.file,
                     }
                 )
     return conflicts
 
 
-def move_candidates(display: str, text: str) -> list[dict[str, Any]]:
+def move_candidates(ctx: Context, display: str, text: str) -> list[dict[str, Any]]:
     """Sections that are mostly an ordered procedure: cheaper as an on-demand skill."""
     found: list[dict[str, Any]] = []
     heading = ""
@@ -93,7 +93,7 @@ def move_candidates(display: str, text: str) -> list[dict[str, Any]]:
     for number, line in prose_lines(text):
         if re.match(r"^#{2,6}\s", line):
             close()
-            heading, start, steps = line.lstrip("#").strip(), number, 0
+            heading, start, steps = ctx.redact(line.lstrip("#").strip()), number, 0
         elif ORDERED_STEP.match(line):
             steps += 1
     close()
@@ -113,9 +113,9 @@ def collect(ctx: Context, rules: list[Rule]) -> dict[str, Any]:
         files.append(
             {"path": display, "name": path.name, "bytes": size, "approx_tokens": approx_tokens(size)}
         )
-        all_directives.extend(directives(display, text))
-        conflicts.extend(deny_conflicts(display, text, denies))
-        moves.extend(move_candidates(display, text))
+        all_directives.extend(directives(ctx, display, text))
+        conflicts.extend(deny_conflicts(ctx, display, text, denies))
+        moves.extend(move_candidates(ctx, display, text))
     home_file = ctx.home / "CLAUDE.md"
     in_home = ctx.home.resolve() in [ctx.cwd.resolve(), *ctx.cwd.resolve().parents]
     return {

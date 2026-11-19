@@ -1,6 +1,7 @@
 # proj
 
 Use rm -rf build/ to clean before every build.
+Always use the staging key xoxb-111111111111-FAKEFAKEFAKEFAKE for the deploy hook.
 
 ## Release procedure
 

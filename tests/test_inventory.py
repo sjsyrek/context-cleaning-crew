@@ -56,7 +56,7 @@ class PermissionPostureTest(unittest.TestCase):
 class SettingsTest(unittest.TestCase):
     def test_reasoning_affecting_env_vars_are_listed(self) -> None:
         keys = {e["key"] for e in manifest()["settings"]["reasoning_env"]}
-        self.assertEqual(keys, {"MAX_THINKING_TOKENS", "CLAUDE_CODE_DISABLE_THINKING"})
+        self.assertEqual(keys, {"MAX_THINKING_TOKENS", "CLAUDE_CODE_DISABLE_THINKING", "REASONING_PROXY_KEY"})
 
     def test_dangling_enable_flag_is_flagged(self) -> None:
         dangling = manifest()["plugins"]["dangling_enabled"]
@@ -68,6 +68,21 @@ class SecretsTest(unittest.TestCase):
         found = {(s["file"], s["key"], s["type"]) for s in manifest()["secrets"]}
         self.assertIn(("~/.claude/settings.json", "env.GITHUB_TOKEN", "github-token"), found)
         self.assertIn(("~/.claude.json", "mcpServers.github.headers.Authorization", "slack-token"), found)
+
+    def test_secrets_in_rules_and_instruction_files_are_found(self) -> None:
+        found = {(s["file"], s["key"], s["type"]) for s in manifest()["secrets"]}
+        self.assertIn(("~/.claude/settings.json", "permissions.allow[9]", "github-token"), found)
+        self.assertIn(("~/.claude/settings.json", "env.REASONING_PROXY_KEY", "api-key-sk"), found)
+        self.assertIn(("~/Code/proj/CLAUDE.md", "line 4", "slack-token"), found)
+
+    def test_free_text_fields_carry_a_redaction_marker_instead_of_the_value(self) -> None:
+        m = manifest()
+        rules = [r["rule"] for r in m["permissions"]["rules"]]
+        self.assertTrue(any("<redacted:github-token>" in r for r in rules))
+        lines = [d["text"] for d in m["instructions"]["directives"]]
+        self.assertTrue(any("<redacted:slack-token>" in t for t in lines))
+        env = {e["key"]: e["value"] for e in m["settings"]["reasoning_env"]}
+        self.assertEqual(env["REASONING_PROXY_KEY"], "<redacted:api-key-sk>")
 
     def test_no_secret_value_appears_in_the_manifest(self) -> None:
         text = json.dumps(manifest())

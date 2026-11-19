@@ -15,6 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from ccc_inventory import Context, build_manifest
+from ccc_inventory.redact import compile_extra
 from ccc_inventory.runner import FakeRunner, Runner, SubprocessRunner
 
 
@@ -26,9 +27,10 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--secret-pattern", action="append", default=[], help="extra secret regex")
     args = parser.parse_args(argv)
     runner: Runner = FakeRunner({}) if args.offline else SubprocessRunner()
-    manifest = build_manifest(
-        Context(home=args.home, cwd=args.cwd, runner=runner), extra_secret_patterns=args.secret_pattern
+    ctx = Context(
+        home=args.home, cwd=args.cwd, runner=runner, secret_patterns=compile_extra(args.secret_pattern)
     )
+    manifest = build_manifest(ctx)
     sys.stdout.write(json.dumps(manifest, sort_keys=True, indent=2) + "\n")
     return 0
 

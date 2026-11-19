@@ -111,7 +111,7 @@ def collect(
                 findings.append(
                     {
                         "kind": "blanket-allow-with-permissive-mode",
-                        "rule": r.text,
+                        "rule": ctx.redact(r.text),
                         "file": r.file,
                         "mode": mode,
                     }
@@ -121,7 +121,12 @@ def collect(
         broader = next((b for b in allows if covers(b, r)), None)
         if broader:
             findings.append(
-                {"kind": "redundant-allow", "rule": r.text, "file": r.file, "covered_by": broader.text}
+                {
+                    "kind": "redundant-allow",
+                    "rule": ctx.redact(r.text),
+                    "file": r.file,
+                    "covered_by": ctx.redact(broader.text),
+                }
             )
 
     for r in rules:
@@ -134,7 +139,7 @@ def collect(
             findings.append(
                 {
                     "kind": "rule-matches-no-tool",
-                    "rule": r.text,
+                    "rule": ctx.redact(r.text),
                     "file": r.file,
                     "list": r.list_name,
                     "reason": reason,
@@ -143,6 +148,6 @@ def collect(
 
     return {
         "default_mode": mode,
-        "rules": [{"rule": r.text, "list": r.list_name, "file": r.file} for r in rules],
+        "rules": [{"rule": ctx.redact(r.text), "list": r.list_name, "file": r.file} for r in rules],
         "findings": findings,
     }

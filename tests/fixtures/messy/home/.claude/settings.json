@@ -2,7 +2,8 @@
   "env": {
     "GITHUB_TOKEN": "ghp_FAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE1234",
     "MAX_THINKING_TOKENS": "0",
-    "CLAUDE_CODE_DISABLE_THINKING": "1"
+    "CLAUDE_CODE_DISABLE_THINKING": "1",
+    "REASONING_PROXY_KEY": "sk-FAKEFAKEFAKEFAKEFAKEFAKE"
   },
   "model": "opus",
   "permissions": {
@@ -16,9 +17,12 @@
       "mcp__ghost__search",
       "mcp__github",
       "mcp__plugin_gone_server__tool",
-      "Frobnicate"
+      "Frobnicate",
+      "Bash(curl -H 'Authorization: Bearer ghp_FAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE9999' https://api.example.invalid:*)"
     ],
-    "deny": ["Bash(rm -rf:*)"]
+    "deny": [
+      "Bash(rm -rf:*)"
+    ]
   },
   "enabledPlugins": {
     "beads@beads-marketplace": true,

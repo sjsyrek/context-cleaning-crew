@@ -1,23 +1,15 @@
-"""Plaintext-secret scan of config files. Records file + key + token type, never the value."""
+"""Plaintext-secret scan of config and instruction files. Records file + key + token type, never the value."""
 
 from __future__ import annotations
 
-import re
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
 
-from .context import Context
+from .context import Context, read_text
 from .mcp import config_sources
+from .redact import classify
 from .settings import SettingsFile
-
-PATTERNS: Sequence[tuple[str, re.Pattern[str]]] = (
-    ("github-token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}")),
-    ("github-pat", re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}")),
-    ("slack-token", re.compile(r"\bxox[abposr]-[A-Za-z0-9-]{10,}")),
-    ("aws-access-key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
-    ("google-oauth-client-secret", re.compile(r"\bGOCSPX-[A-Za-z0-9_-]{20,}")),
-    ("api-key-sk", re.compile(r"\bsk-(?:ant-|proj-)?[A-Za-z0-9_-]{20,}")),
-)
 
 
 def walk(value: Any, path: str) -> Iterator[tuple[str, str]]:
@@ -31,23 +23,20 @@ def walk(value: Any, path: str) -> Iterator[tuple[str, str]]:
         yield path, value
 
 
-def classify(value: str, extra: Sequence[tuple[str, re.Pattern[str]]] = ()) -> list[str]:
-    return [name for name, pattern in (*PATTERNS, *extra) if pattern.search(value)]
-
-
-def collect(
-    ctx: Context, files: list[SettingsFile], extra_patterns: Sequence[str] = ()
-) -> list[dict[str, str]]:
-    extra = [(f"custom-{i}", re.compile(p)) for i, p in enumerate(extra_patterns)]
+def collect(ctx: Context, files: list[SettingsFile], instruction_files: list[Path]) -> list[dict[str, str]]:
     found: list[dict[str, str]] = []
 
-    def scan(display: str, root: Any, prefix: str) -> None:
-        for key, value in walk(root, prefix):
-            for token_type in classify(value, extra):
-                found.append({"file": display, "key": key, "type": token_type})
+    def add(display: str, key: str, value: str) -> None:
+        for token_type in classify(value, ctx.secret_patterns):
+            found.append({"file": display, "key": key, "type": token_type})
 
     for f in files:
-        scan(ctx.display(f.path), f.data, "")
+        for key, value in walk(f.data, ""):
+            add(ctx.display(f.path), key, value)
     for source in config_sources(ctx):
-        scan(ctx.display(source["file"]), source["servers"], source["prefix"])
+        for key, value in walk(source["servers"], source["prefix"]):
+            add(ctx.display(source["file"]), key, value)
+    for path in instruction_files:
+        for number, line in enumerate((read_text(path) or "").splitlines(), start=1):
+            add(ctx.display(path), f"line {number}", line)
     return sorted(found, key=lambda s: (s["file"], s["key"], s["type"]))
