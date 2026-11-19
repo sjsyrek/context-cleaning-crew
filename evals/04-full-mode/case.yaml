@@ -1,0 +1,13 @@
+schema_version: "1.0"
+name: 04-full-mode
+description: Full mode on a copied fixture home dispatches the five read-only seats as unnamed subagents, resumes the workflow advocate once, and ends with a deduped, numbered card carrying keep arguments, without changing anything.
+tags: [tier2, full]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    /context-cleaning-crew:context-cleaning-crew full — audit the setup copied at ./audit-home (its working tree is ./audit-home/Code/proj). Use ./reports as the report_dir. When the report is written, copy it to ./report.md, then run `cd audit-home && shasum -a 256 -c ../.audit-home.sha256 --quiet && echo TREE-UNCHANGED`.
+  max_turns: 60
+  timeout_seconds: 1800
+  allowed_tools: [Skill, Read, Glob, Grep, Bash, Write, Agent, SendMessage]
+runs: 1

@@ -18,8 +18,8 @@ It looks at settings and permissions, CLAUDE.md and AGENTS.md files (including p
 ```
 
 - `quick` (default): one reviewer, then a plan card; nothing changes until you approve each item.
-- `full`: five parallel reviewer subagents and one debate round, then the plan card.
-- `report`: read-only; writes a dated report and exits. Safe to schedule.
+- `full`: five parallel, read-only reviewer subagents (context economist, overlap analyst, security reviewer, memory curator, workflow advocate), one debate round in which the advocate argues for keeping what you use, then the plan card. No agent teams needed. Grant `SendMessage` in headless runs, or the debate round is skipped.
+- `report`: read-only; writes a dated report and exits. Safe to schedule: see `skills/context-cleaning-crew/references/routine-setup.md` for launchd/cron and the minimal headless allowlist.
 
 After a Claude Code update, a SessionStart hook suggests a report run once. On every other start it prints nothing.
 

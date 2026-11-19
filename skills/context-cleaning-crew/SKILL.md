@@ -14,7 +14,7 @@ Audit the user's Claude Code setup and clean it up **only with per-item approval
 | Mode | Review | Changes things? |
 |---|---|---|
 | `quick` (default) | You, one pass over all five lenses | Only after the plan card is approved |
-| `full` | Five parallel reviewer subagents + one debate round, then you | Only after the plan card is approved |
+| `full` | Five parallel read-only subagents (`agents/`) + one debate round, then you | Only after the plan card is approved |
 | `report` | You, one pass | **Never.** Write the report and stop. |
 
 Parse the first argument as the mode (default `quick`) and the rest as an optional focus (e.g. "permissions", "memory"). A focus narrows the review, not the inventory.
@@ -32,13 +32,15 @@ Use `--out` (it creates `<report_dir>`), not a shell redirect or `mkdir`: headle
 - `quick` / `full`: add `--refresh-marketplaces --run-trackers` (the refresh updates the local marketplace clones so version drift is real; trackers run their count command, e.g. `bd stats`).
 - `report`: add neither, unless the `refresh_marketplaces` option is on. Never run anything that writes outside `<report_dir>`.
 - `<report_dir>` defaults to `~/.claude/context-cleaning-crew/reports/`.
-- **Another setup** (a backup, a copy, a fixture): when the user names one, pass `--home <its home>` and `--cwd <its working tree>`, and run in `report` mode whatever mode was asked for — the `claude plugin`/`claude mcp` commands the executor uses always act on the live setup, so cleaning a different tree is out of scope. Say so in one line. Its manifest has `live_setup: false`, and plugin costs and CLI versions read "not checked: not the live setup" (those commands only describe the live install); say so in the report instead of estimating them.
+- **Another setup** (a backup, a copy, a fixture): when the user names one, pass `--home <its home>` and `--cwd <its working tree>`, and never apply anything: review as asked (`full` still dispatches the seats), then finish as in `report` mode. The `claude plugin`/`claude mcp` commands the executor uses always act on the live setup, so cleaning a different tree is out of scope. Say so in one line. Its manifest has `live_setup: false`, and plugin costs and CLI versions read "not checked: not the live setup" (those commands only describe the live install); say so in the report instead of estimating them.
 
 Read the manifest. It never contains secret values (they appear as `<redacted:<type>>`) — **never print, log or pass a secret value**, even if you find one elsewhere. Identify secrets by file + key + type only.
 
 ## Phase 2 — Review
 
-Produce findings in the schema in `references/finding-schema.md`. Work from the manifest; read files only to verify a specific claim (a memory fact, an instruction passage). Cover all five lenses:
+Produce findings in the schema in `references/finding-schema.md`. Work from the manifest; read files only to verify a specific claim (a memory fact, an instruction passage).
+
+In `full` mode, follow `references/full-mode.md`: the five lenses below become five parallel read-only subagents plus one debate round with the workflow advocate, and you dedupe and resolve their findings. In `quick` and `report` mode you cover all five lenses yourself:
 
 1. **Context economist** — always-on token cost (`plugins.installed[].cost`, instruction files, memory, context-injecting hooks) against usage (`usage.skills`); reasoning-affecting env vars (`settings.reasoning_env`); instructions that fight Claude Code's own behavior; instruction conflicts (`instructions.directives`, `deny_conflicts`, across files and levels); `move` candidates (`instructions.move_candidates`).
 2. **Overlap analyst** — duplicate MCP servers (`mcp.duplicates`), plugins a built-in replaces (`overlap.builtin`; check the note for partial overlap), and **synced claude.ai skills**: compare the `anthropic-skills:*` entries in your own available-skills list with `plugins.installed` (e.g. `anthropic-skills:red-team` vs a `red-team` plugin). Pick a keeper by the `preferred_marketplaces` option, then capability.
