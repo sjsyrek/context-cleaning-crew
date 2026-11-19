@@ -35,6 +35,7 @@ def build_manifest(ctx: Context) -> dict[str, Any]:
     rules = permissions.all_rules(ctx, files)
     return {
         "schema_version": SCHEMA_VERSION,
+        "live_setup": ctx.live,
         "settings": settings.collect(ctx, files),
         "permissions": permissions.collect(ctx, files, servers, installed_names),
         "plugins": plugin_section,

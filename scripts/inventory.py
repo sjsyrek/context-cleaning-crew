@@ -43,6 +43,7 @@ def main(argv: list[str]) -> int:
         secret_patterns=compile_extra(args.secret_pattern),
         refresh_marketplaces=args.refresh_marketplaces and not args.offline,
         run_trackers=args.run_trackers and not args.offline,
+        live=args.home.resolve() == Path.home().resolve(),
     )
     manifest = build_manifest(ctx)
     text = json.dumps(manifest, sort_keys=True, indent=2) + "\n"

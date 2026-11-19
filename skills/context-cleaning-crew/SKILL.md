@@ -32,7 +32,7 @@ Use `--out` (it creates `<report_dir>`), not a shell redirect or `mkdir`: headle
 - `quick` / `full`: add `--refresh-marketplaces --run-trackers` (the refresh updates the local marketplace clones so version drift is real; trackers run their count command, e.g. `bd stats`).
 - `report`: add neither, unless the `refresh_marketplaces` option is on. Never run anything that writes outside `<report_dir>`.
 - `<report_dir>` defaults to `~/.claude/context-cleaning-crew/reports/`.
-- **Another setup** (a backup, a copy, a fixture): when the user names one, pass `--home <its home>` and `--cwd <its working tree>`, and run in `report` mode whatever mode was asked for — the `claude plugin`/`claude mcp` commands the executor uses always act on the live setup, so cleaning a different tree is out of scope. Say so in one line.
+- **Another setup** (a backup, a copy, a fixture): when the user names one, pass `--home <its home>` and `--cwd <its working tree>`, and run in `report` mode whatever mode was asked for — the `claude plugin`/`claude mcp` commands the executor uses always act on the live setup, so cleaning a different tree is out of scope. Say so in one line. Its manifest has `live_setup: false`, and plugin costs and CLI versions read "not checked: not the live setup" (those commands only describe the live install); say so in the report instead of estimating them.
 
 Read the manifest. It never contains secret values (they appear as `<redacted:<type>>`) — **never print, log or pass a secret value**, even if you find one elsewhere. Identify secrets by file + key + type only.
 

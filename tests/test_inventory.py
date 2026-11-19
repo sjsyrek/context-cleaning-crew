@@ -393,5 +393,55 @@ class ReadOnlyRunTest(unittest.TestCase):
             self.assertEqual(done.stdout.strip(), f"wrote {out}")
 
 
+class NotLiveSetupTest(unittest.TestCase):
+    """`claude plugin ...` and CLI probes describe the live install, so they must not leak into
+    an audit of another home (a backup, a copy, a fixture)."""
+
+    def setUp(self) -> None:
+        self.runner = FakeRunner(
+            {
+                ("claude", "plugin", "details", "beads@beads-marketplace"): CommandResult(0, DETAILS),
+                ("bd", "--version"): BD_VERSION,
+                REFRESH: CommandResult(0, ""),
+            }
+        )
+        ctx = Context(
+            home=FIXTURE_HOME, cwd=FIXTURE_CWD, runner=self.runner, refresh_marketplaces=True, live=False
+        )
+        self.m = build_manifest(ctx)
+
+    def test_no_live_only_command_runs(self) -> None:
+        self.assertEqual([c for c in self.runner.calls if c[0] in ("claude", "bd")], [])
+
+    def test_costs_and_cli_versions_say_why_they_were_not_checked(self) -> None:
+        for plugin in self.m["plugins"]["installed"]:
+            self.assertEqual(plugin["cost"], {"status": "not checked: not the live setup"})
+        self.assertEqual({d["status"] for d in self.m["drift"]["cli"]}, {"not checked: not the live setup"})
+        self.assertFalse(self.m["drift"]["refreshed"])
+
+    def test_manifest_records_whether_it_describes_the_live_setup(self) -> None:
+        self.assertFalse(self.m["live_setup"])
+        self.assertTrue(manifest()["live_setup"])
+
+    def test_cli_marks_a_home_other_than_the_real_one_as_not_live(self) -> None:
+        import subprocess
+
+        done = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "inventory.py"),
+                "--home",
+                str(FIXTURE_HOME),
+                "--cwd",
+                str(FIXTURE_CWD),
+                "--offline",
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        self.assertFalse(json.loads(done.stdout)["live_setup"])
+
+
 if __name__ == "__main__":
     unittest.main()

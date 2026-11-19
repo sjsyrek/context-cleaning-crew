@@ -43,6 +43,8 @@ def parse(output: str) -> dict[str, Any]:
 
 
 def plugin_cost(ctx: Context, plugin_id: str) -> dict[str, Any]:
+    if not ctx.live:
+        return {"status": ctx.NOT_LIVE}
     result = ctx.runner.run(["claude", "plugin", "details", plugin_id])
     if result.returncode != 0:
         return {"status": "not checked"}

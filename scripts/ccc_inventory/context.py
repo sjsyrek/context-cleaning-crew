@@ -22,6 +22,9 @@ class Context:
     secret_patterns: tuple[Pattern, ...] = ()
     refresh_marketplaces: bool = False  # writes the local marketplace clones
     run_trackers: bool = False  # runs tracker CLIs (e.g. `bd stats`) in the working tree
+    live: bool = True  # home is the running user's: `claude plugin ...` and CLI probes describe it
+
+    NOT_LIVE = "not checked: not the live setup"
 
     @property
     def claude_dir(self) -> Path:

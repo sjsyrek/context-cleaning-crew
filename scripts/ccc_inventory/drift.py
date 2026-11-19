@@ -66,7 +66,7 @@ def available_version(market: dict[str, Any], plugin: str) -> str:
 
 def refresh(ctx: Context) -> bool:
     """Refresh marketplace clones; must run before anything reads plugin or marketplace state."""
-    return ctx.refresh_marketplaces and ctx.runner.run(REFRESH).returncode == 0
+    return ctx.live and ctx.refresh_marketplaces and ctx.runner.run(REFRESH).returncode == 0
 
 
 def collect(ctx: Context, refreshed: bool) -> dict[str, Any]:
@@ -97,10 +97,14 @@ def collect(ctx: Context, refreshed: bool) -> dict[str, Any]:
         if not isinstance(wrapper, dict):
             continue
         plugin_version = next(d["installed"] for d in marketplace_drift if d["plugin"] == pid)
-        result = ctx.runner.run(list(wrapper["command"]))
-        cli = parse_version(result.stdout) if result.returncode == 0 else None
+        cli = None
+        if ctx.live:
+            result = ctx.runner.run(list(wrapper["command"]))
+            cli = parse_version(result.stdout) if result.returncode == 0 else None
         cli_version = ".".join(str(p) for p in cli) if cli else ""
-        if not cli_version:
+        if not ctx.live:
+            status = ctx.NOT_LIVE
+        elif not cli_version:
             status = "not checked"
         else:
             status = "same" if parse_version(plugin_version) == cli else "differs"
