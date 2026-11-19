@@ -47,7 +47,6 @@ def collect(ctx: Context) -> list[dict[str, Any]]:
                 }
                 if condition:
                     ref["condition"] = condition
-                else:
-                    ref["replacement"] = entry.get("replacement", "")
+                ref["replacement"] = entry.get("replacement", "")
                 refs.append(ref)
     return refs

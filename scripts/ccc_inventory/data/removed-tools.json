@@ -8,7 +8,7 @@
     {"tool": "SendMessage to \"*\"", "pattern": "to:\\s*[\"']\\*[\"']", "removed_in": "", "replacement": "one SendMessage per recipient"}
   ],
   "conditional": [
-    {"tool": "TodoWrite", "pattern": "\\bTodoWrite\\b", "condition": "unavailable on Opus 4.8+ unless CLAUDE_CODE_ENABLE_TODO_TOOLS=1"},
-    {"tool": "TaskCreate", "pattern": "\\bTaskCreate\\b", "condition": "unavailable on Opus 4.8+ unless CLAUDE_CODE_ENABLE_TODO_TOOLS=1"}
+    {"tool": "TodoWrite", "pattern": "\\bTodoWrite\\b", "condition": "unavailable on Opus 4.8+ unless CLAUDE_CODE_ENABLE_TODO_TOOLS=1", "replacement": "set CLAUDE_CODE_ENABLE_TODO_TOOLS=1, or drop the step and track progress in plain text; TodoWrite, TaskCreate and TaskUpdate are all gated by the same condition, so none replaces another"},
+    {"tool": "TaskCreate", "pattern": "\\bTaskCreate\\b", "condition": "unavailable on Opus 4.8+ unless CLAUDE_CODE_ENABLE_TODO_TOOLS=1", "replacement": "set CLAUDE_CODE_ENABLE_TODO_TOOLS=1, or drop the step and track progress in plain text; TodoWrite, TaskCreate and TaskUpdate are all gated by the same condition, so none replaces another"}
   ]
 }

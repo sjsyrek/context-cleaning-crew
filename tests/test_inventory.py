@@ -146,6 +146,17 @@ class RemovedToolsTest(unittest.TestCase):
         self.assertEqual(refs[0]["tool"], "TodoWrite")
         self.assertIn("CLAUDE_CODE_ENABLE_TODO_TOOLS", refs[0]["condition"])
 
+    def test_every_reference_names_a_replacement(self) -> None:
+        for ref in manifest()["removed_tool_refs"]:
+            self.assertTrue(ref.get("replacement"), ref)
+
+    def test_a_conditional_tool_is_never_replaced_by_one_gated_the_same_way(self) -> None:
+        ref = next(r for r in manifest()["removed_tool_refs"] if r["tool"] == "TodoWrite")
+        self.assertNotRegex(
+            ref["replacement"], r"(?i)^(?:use |switch to |rewrite for )?Task(?:Create|Update)"
+        )
+        self.assertIn("same condition", ref["replacement"])
+
     def test_clean_agent_has_no_hits(self) -> None:
         paths = {r["path"] for r in manifest()["removed_tool_refs"]}
         self.assertNotIn("~/.claude/agents/clean-agent.md", paths)
