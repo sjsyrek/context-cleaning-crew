@@ -4,7 +4,19 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import instructions, mcp, memory, permissions, plugins, removed_tools, secrets, settings
+from . import (
+    counts,
+    drift,
+    instructions,
+    mcp,
+    memory,
+    overlap,
+    permissions,
+    plugins,
+    removed_tools,
+    secrets,
+    settings,
+)
 from .context import Context
 
 SCHEMA_VERSION = 1
@@ -27,5 +39,9 @@ def build_manifest(ctx: Context) -> dict[str, Any]:
         "instructions": instructions.collect(ctx, rules),
         "removed_tool_refs": removed_tools.collect(ctx),
         "memory": memory.collect(ctx),
+        "marketplaces": drift.marketplace_summary(ctx),
+        "drift": drift.collect(ctx),
+        "overlap": overlap.collect(ctx),
+        "counts": counts.collect(ctx),
         "secrets": secrets.collect(ctx, files, instructions.load_path(ctx)),
     }

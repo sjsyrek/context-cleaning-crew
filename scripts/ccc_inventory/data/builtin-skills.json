@@ -1,0 +1,11 @@
+{
+  "_comment": "Built-in skills/commands of current Claude Code and plugins they may replace. Candidates only: the reviewer decides.",
+  "builtins": [
+    {"builtin": "/code-review", "plugins": ["code-review", "pr-review-toolkit"], "note": "pr-review-toolkit also has specialized agents; partial overlap"},
+    {"builtin": "/simplify", "plugins": ["code-simplifier"], "note": ""},
+    {"builtin": "/security-review", "plugins": ["security-guidance"], "note": "security-guidance also runs hooks; partial overlap"},
+    {"builtin": "/loop", "plugins": ["ralph-loop", "ralph-wiggum"], "note": ""},
+    {"builtin": "/init", "plugins": [], "note": ""},
+    {"builtin": "/schedule", "plugins": [], "note": ""}
+  ]
+}

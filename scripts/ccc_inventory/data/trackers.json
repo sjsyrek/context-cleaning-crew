@@ -1,0 +1,6 @@
+{
+  "_comment": "Issue trackers: the count command that includes closed/inactive items, and the one to avoid.",
+  "trackers": [
+    {"tracker": "beads", "marker": ".beads", "command": ["bd", "stats"], "avoid": "bd list", "why": "bd list hides closed issues"}
+  ]
+}

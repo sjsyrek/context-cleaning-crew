@@ -1,0 +1,5 @@
+{
+  "beads-marketplace": {"source": {"source": "github", "repo": "example/beads"}, "installLocation": "~/.claude/plugins/marketplaces/beads-marketplace"},
+  "claude-plugins-official": {"source": {"source": "github", "repo": "example/official"}, "installLocation": "~/.claude/plugins/marketplaces/official"},
+  "empty-mkt": {"source": {"source": "github", "repo": "example/empty"}, "installLocation": "~/.claude/plugins/marketplaces/empty-mkt"}
+}

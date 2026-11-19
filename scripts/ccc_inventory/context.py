@@ -19,6 +19,8 @@ class Context:
     cwd: Path
     runner: Runner
     secret_patterns: tuple[Pattern, ...] = ()
+    refresh_marketplaces: bool = False  # writes the local marketplace clones
+    run_trackers: bool = False  # runs tracker CLIs (e.g. `bd stats`) in the working tree
 
     @property
     def claude_dir(self) -> Path:

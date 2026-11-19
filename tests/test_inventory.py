@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from ccc_inventory import Context, build_manifest  # noqa: E402
-from ccc_inventory.runner import FakeRunner  # noqa: E402
+from ccc_inventory.runner import CommandResult, FakeRunner  # noqa: E402
 
 FIXTURE_HOME = ROOT / "tests" / "fixtures" / "messy" / "home"
 FIXTURE_CWD = FIXTURE_HOME / "Code" / "proj"
@@ -198,3 +198,82 @@ class CommandLineTest(unittest.TestCase):
         data = json.loads(done.stdout)
         self.assertEqual(data["schema_version"], 1)
         self.assertEqual(done.stdout, json.dumps(data, sort_keys=True, indent=2) + "\n")
+
+
+BD_VERSION = CommandResult(0, "bd version 1.4.0 (Homebrew)\n")
+BD_STATS = CommandResult(0, "Total: 12\nOpen: 3\nClosed: 9\n")
+REFRESH = ("claude", "plugin", "marketplace", "update")
+
+
+def online_manifest(refresh: bool = False) -> tuple[dict[str, Any], FakeRunner]:
+    runner = FakeRunner(
+        {("bd", "--version"): BD_VERSION, ("bd", "stats"): BD_STATS, REFRESH: CommandResult(0, "")}
+    )
+    ctx = Context(
+        home=FIXTURE_HOME,
+        cwd=FIXTURE_CWD,
+        runner=runner,
+        refresh_marketplaces=refresh,
+        run_trackers=True,
+    )
+    return build_manifest(ctx), runner
+
+
+class VersionDriftTest(unittest.TestCase):
+    def test_plugin_behind_its_marketplace_is_reported(self) -> None:
+        drift = {d["plugin"]: d for d in manifest()["drift"]["marketplace"]}
+        self.assertEqual(drift["beads@beads-marketplace"]["installed"], "1.3.4")
+        self.assertEqual(drift["beads@beads-marketplace"]["available"], "1.3.5")
+        self.assertEqual(drift["beads@beads-marketplace"]["status"], "behind")
+
+    def test_remote_source_version_is_unknown_not_current(self) -> None:
+        drift = {d["plugin"]: d for d in manifest()["drift"]["marketplace"]}
+        self.assertEqual(drift["code-simplifier@claude-plugins-official"]["status"], "unknown")
+
+    def test_marketplaces_are_refreshed_before_comparing_only_when_asked(self) -> None:
+        m, runner = online_manifest(refresh=True)
+        self.assertEqual(runner.calls[0], REFRESH)
+        self.assertTrue(m["drift"]["refreshed"])
+        m, runner = online_manifest(refresh=False)
+        self.assertNotIn(REFRESH, runner.calls)
+        self.assertFalse(m["drift"]["refreshed"])
+
+    def test_plugin_behind_the_cli_it_wraps_is_reported(self) -> None:
+        m, _ = online_manifest()
+        cli = {d["plugin"]: d for d in m["drift"]["cli"]}
+        self.assertEqual(cli["beads@beads-marketplace"]["cli_version"], "1.4.0")
+        self.assertEqual(cli["beads@beads-marketplace"]["plugin_version"], "1.3.4")
+        self.assertEqual(cli["beads@beads-marketplace"]["status"], "differs")
+
+    def test_offline_run_skips_cli_probes(self) -> None:
+        cli = {d["plugin"]: d for d in manifest()["drift"]["cli"]}
+        self.assertEqual(cli["beads@beads-marketplace"]["status"], "not checked")
+
+
+class MarketplacesTest(unittest.TestCase):
+    def test_marketplace_with_no_installed_plugins_is_flagged(self) -> None:
+        self.assertEqual(manifest()["marketplaces"]["unused"], ["empty-mkt"])
+
+
+class BuiltinOverlapTest(unittest.TestCase):
+    def test_plugin_replaced_by_a_builtin_skill_is_flagged(self) -> None:
+        hits = {(o["plugin"], o["builtin"]) for o in manifest()["overlap"]["builtin"]}
+        self.assertIn(("code-simplifier@claude-plugins-official", "/simplify"), hits)
+        self.assertNotIn("beads@beads-marketplace", {p for p, _ in hits})
+
+
+class TrackerCountsTest(unittest.TestCase):
+    def test_tracker_count_uses_the_command_that_includes_closed_items(self) -> None:
+        m, runner = online_manifest()
+        counts = m["counts"]
+        self.assertEqual(len(counts), 1)
+        self.assertEqual(counts[0]["tracker"], "beads")
+        self.assertEqual(counts[0]["command"], "bd stats")
+        self.assertEqual(counts[0]["avoid"], "bd list")
+        self.assertIn("Closed: 9", counts[0]["output"])
+        self.assertNotIn(("bd", "list"), runner.calls)
+
+    def test_tracker_commands_do_not_run_unless_allowed(self) -> None:
+        counts = manifest()["counts"]
+        self.assertEqual(counts[0]["output"], "")
+        self.assertEqual(counts[0]["status"], "not run")

@@ -63,7 +63,7 @@ Python 3 standard library only, compatible with the stock macOS Python (3.9). It
   - plugin vs. marketplace: refresh marketplaces first (`claude plugin marketplace update`), then compare installed versions with the marketplace's; `claude plugin update` alone only checks the local clone and reports stale clones as current
   - plugin vs. the CLI it wraps: for plugins that wrap a CLI (for example the beads plugin and `bd --version`), compare the plugin's version with the CLI's
   - refreshing marketplaces writes to the local marketplace clones; it runs in quick and full mode, and in report mode only when the `refresh_marketplaces` option allows it (otherwise the report says the comparison used the cached clones)
-- **Built-ins and synced skills:** the list of built-in skills and commands of the running Claude Code (`/code-review`, `/simplify`, `/loop`, `/security-review`, `/init`, `/schedule`, …) and the skills synced from claude.ai (`anthropic-skills:*`), so the review can flag plugins they replace — for example the synced `anthropic-skills:red-team` next to the `red-team` plugin.
+- **Built-ins and synced skills:** the list of built-in skills and commands of the running Claude Code (`/code-review`, `/simplify`, `/loop`, `/security-review`, `/init`, `/schedule`, …), kept in a data file with the plugins each may replace, so the review can flag them. Skills synced from claude.ai (`anthropic-skills:*`) are not recorded in any local file; they appear only in the session's own skill list, so the reviewer compares that list with the manifest's plugins — for example the synced `anthropic-skills:red-team` next to the `red-team` plugin.
 - **Removed-tool references:** scan the user's own skills, agents and commands (user and project scope, plus plugins the user authors) for tool names and parameters the changelog says were removed. Known cases, kept in a data file: `TeamCreate`, `TeamDelete`, `TaskOutput`, `Agent` `run_in_background`, `SendMessage` to `"*"`, and `TaskCreate`/`TodoWrite` on Opus 4.8+ unless `CLAUDE_CODE_ENABLE_TODO_TOOLS=1`. `claude plugin validate` passes plugins that use these, so validation is not enough.
 - **Marketplaces:** configured marketplaces and how many installed plugins come from each. Flag those with zero, and local entries that override a managed entry for the same name.
 - **MCP servers:**
@@ -75,7 +75,7 @@ Python 3 standard library only, compatible with the stock macOS Python (3.9). It
 - **Usage signals:**
   - skill usage counts and last-used dates from `~/.claude.json` (`skillUsage`)
   - MCP tool usage is NOT reliably in `~/.claude.json`, so optionally mine `~/.claude/projects/*/*.jsonl` transcripts for `mcp__<server>__` tool calls over the last N days (opt-in; read-only; counts only, never content)
-- **Counts that hide items:** when the inventory counts things through a tool, use the command that includes closed or inactive items (for example `bd stats`, not `bd list`, which hides closed issues), and record which command produced each count.
+- **Counts that hide items:** when the inventory counts things through a tool, use the command that includes closed or inactive items (for example `bd stats`, not `bd list`, which hides closed issues), and record which command produced each count. A data file names the command to use and the one to avoid per tracker; the command runs only with `--run-trackers`, otherwise the manifest names it and leaves the count to the user.
 - **Memory:** every auto-memory directory under `~/.claude/projects/*/memory/`, with file sizes, age, index line lengths and links to missing files. Also look for stray memory-like directories elsewhere (for example `<project>/.claude/memory/`) that are not loaded.
 - **Memory scope:** auto-memory is per working directory. Record which directory each memory belongs to and flag memory the user evidently expects to apply everywhere (user-preference or feedback memories, "always"/"every project" wording, the same fact in several project memories) but that only loads under one directory; the fix is usually `~/.claude/CLAUDE.md` or a user skill.
 - **Facts for staleness checks:** cheap, read-only, deterministic checks the memory curator would otherwise run itself — does a named git remote exist, is a named tool on `PATH` and at what version — recorded in the manifest so review seats need no shell.
@@ -182,7 +182,7 @@ context-cleaning-crew/
   scripts/
     inventory/                      # package: one module per source, plus __main__
     update_check.py                 # SessionStart hook
-    data/removed-tools.json         # removed tool names/params, with the version that removed them
+    ccc_inventory/data/             # removed tools, built-in tools and skills, CLI wrappers, trackers
   tests/
     fixtures/                       # synthetic ~/.claude trees (see Testing)
     test_*.py                       # unittest, stdlib only

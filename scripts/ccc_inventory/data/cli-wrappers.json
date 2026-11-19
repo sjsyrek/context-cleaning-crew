@@ -1,0 +1,6 @@
+{
+  "_comment": "Plugins that wrap a CLI, and the read-only command that prints the CLI's version.",
+  "wrappers": {
+    "beads": {"command": ["bd", "--version"]}
+  }
+}

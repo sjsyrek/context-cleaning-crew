@@ -26,6 +26,7 @@
   },
   "enabledPlugins": {
     "beads@beads-marketplace": true,
-    "ghost@nowhere": true
+    "ghost@nowhere": true,
+    "code-simplifier@claude-plugins-official": true
   }
 }
