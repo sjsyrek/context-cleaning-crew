@@ -344,3 +344,10 @@ class McpServersTest(unittest.TestCase):
         self.assertEqual(
             manifest()["mcp"]["deprecated_transport"], [{"server": "github-sse", "transport": "sse"}]
         )
+
+
+class FreeTextPathTest(unittest.TestCase):
+    def test_absolute_home_path_in_free_text_becomes_tilde(self) -> None:
+        ctx = Context(home=FIXTURE_HOME, cwd=FIXTURE_CWD, runner=FakeRunner({}))
+        text = f'"{FIXTURE_HOME}/.config/tool" run --dir={FIXTURE_HOME}'
+        self.assertEqual(ctx.redact(text), '"~/.config/tool" run --dir=~')

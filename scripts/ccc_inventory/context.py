@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -27,8 +28,11 @@ class Context:
         return self.home / ".claude"
 
     def redact(self, text: str) -> str:
-        """Every free-text manifest field goes through this, so no secret value is ever echoed."""
-        return redact(text, self.secret_patterns)
+        """Every free-text manifest field goes through this: no secret value, no absolute home path."""
+        text = redact(text, self.secret_patterns)
+        for home in sorted({str(self.home.resolve()), str(self.home)}, key=len, reverse=True):
+            text = re.sub(re.escape(home) + r"(?=/|\b|$|[\s\"'=])", "~", text)
+        return text
 
     def display(self, path: Path) -> str:
         """Render a path relative to home as `~/...` so manifests are portable and diffable."""
