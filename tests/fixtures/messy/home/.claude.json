@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "github": {"type": "http", "url": "https://api.example.invalid/mcp", "headers": {"Authorization": "Bearer xoxb-000000000000-FAKEFAKEFAKEFAKE"}}
+  },
+  "skillUsage": {
+    "old-council": {"usageCount": 3, "lastUsedAt": 1700000000000}
+  }
+}

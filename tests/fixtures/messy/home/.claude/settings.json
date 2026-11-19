@@ -1,0 +1,27 @@
+{
+  "env": {
+    "GITHUB_TOKEN": "ghp_FAKEFAKEFAKEFAKEFAKEFAKEFAKEFAKE1234",
+    "MAX_THINKING_TOKENS": "0",
+    "CLAUDE_CODE_DISABLE_THINKING": "1"
+  },
+  "model": "opus",
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash",
+      "Bash(git status:*)",
+      "Read",
+      "Grep(*)",
+      "WebFetch(domain:example.com)",
+      "mcp__ghost__search",
+      "mcp__github",
+      "mcp__plugin_gone_server__tool",
+      "Frobnicate"
+    ],
+    "deny": ["Bash(rm -rf:*)"]
+  },
+  "enabledPlugins": {
+    "beads@beads-marketplace": true,
+    "ghost@nowhere": true
+  }
+}

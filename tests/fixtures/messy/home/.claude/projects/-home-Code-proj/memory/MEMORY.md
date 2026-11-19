@@ -1,0 +1,2 @@
+- [Prefers terse answers](prefers-terse.md) — user wants short replies everywhere
+- [Missing](missing-file.md) — points nowhere

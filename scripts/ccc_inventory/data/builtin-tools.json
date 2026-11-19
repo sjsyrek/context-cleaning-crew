@@ -1,0 +1,11 @@
+{
+  "_comment": "Built-in tool names a permission rule can name. Unknown names match no tool.",
+  "tools": [
+    "Agent", "AskUserQuestion", "Bash", "BashOutput", "CronCreate", "CronDelete", "CronList",
+    "Edit", "EnterPlanMode", "EnterWorktree", "ExitPlanMode", "ExitWorktree", "Glob", "Grep",
+    "KillShell", "LS", "LSP", "ListMcpResourcesTool", "Monitor", "MultiEdit", "NotebookEdit",
+    "NotebookRead", "PushNotification", "Read", "ReadMcpResourceTool", "RemoteTrigger",
+    "ScheduleWakeup", "SendMessage", "Skill", "SlashCommand", "Task", "TaskCreate", "TaskGet",
+    "TaskList", "TaskStop", "TaskUpdate", "TodoWrite", "ToolSearch", "WebFetch", "WebSearch", "Write"
+  ]
+}
