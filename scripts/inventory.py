@@ -33,6 +33,7 @@ def main(argv: list[str]) -> int:
     parser.add_argument(
         "--run-trackers", action="store_true", help="run tracker count commands such as `bd stats`"
     )
+    parser.add_argument("--out", type=Path, help="write the manifest to this file instead of stdout")
     args = parser.parse_args(argv)
     runner: Runner = FakeRunner({}) if args.offline else SubprocessRunner()
     ctx = Context(
@@ -44,7 +45,13 @@ def main(argv: list[str]) -> int:
         run_trackers=args.run_trackers and not args.offline,
     )
     manifest = build_manifest(ctx)
-    sys.stdout.write(json.dumps(manifest, sort_keys=True, indent=2) + "\n")
+    text = json.dumps(manifest, sort_keys=True, indent=2) + "\n"
+    if args.out:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(text)
+        sys.stdout.write(f"wrote {args.out}\n")
+    else:
+        sys.stdout.write(text)
     return 0
 
 

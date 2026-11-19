@@ -173,10 +173,6 @@ class StabilityTest(unittest.TestCase):
         self.assertNotIn(str(FIXTURE_HOME), json.dumps(manifest()))
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class CommandLineTest(unittest.TestCase):
     def test_cli_prints_the_manifest_as_sorted_json(self) -> None:
         import subprocess
@@ -351,3 +347,51 @@ class FreeTextPathTest(unittest.TestCase):
         ctx = Context(home=FIXTURE_HOME, cwd=FIXTURE_CWD, runner=FakeRunner({}))
         text = f'"{FIXTURE_HOME}/.config/tool" run --dir={FIXTURE_HOME}'
         self.assertEqual(ctx.redact(text), '"~/.config/tool" run --dir=~')
+
+
+def tree_digest(root: Path) -> dict[str, str]:
+    import hashlib
+
+    return {
+        str(f.relative_to(root)): hashlib.sha256(f.read_bytes()).hexdigest()
+        for f in sorted(root.rglob("*"))
+        if f.is_file()
+    }
+
+
+class ReadOnlyRunTest(unittest.TestCase):
+    """Report mode's inventory run must leave the audited tree byte-identical."""
+
+    def test_cli_run_writes_only_the_out_file_and_leaves_the_home_untouched(self) -> None:
+        import shutil
+        import subprocess
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp) / "home"
+            shutil.copytree(FIXTURE_HOME, home)
+            before = tree_digest(home)
+            out = Path(tmp) / "reports" / "nested" / "manifest.json"
+            done = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "scripts" / "inventory.py"),
+                    "--home",
+                    str(home),
+                    "--cwd",
+                    str(home / "Code" / "proj"),
+                    "--offline",
+                    "--out",
+                    str(out),
+                ],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
+            self.assertEqual(tree_digest(home), before)
+            self.assertEqual(json.loads(out.read_text())["schema_version"], 1)
+            self.assertEqual(done.stdout.strip(), f"wrote {out}")
+
+
+if __name__ == "__main__":
+    unittest.main()

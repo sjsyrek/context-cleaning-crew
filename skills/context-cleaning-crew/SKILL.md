@@ -24,12 +24,14 @@ Parse the first argument as the mode (default `quick`) and the rest as an option
 Run the deterministic, read-only inventory and save its output:
 
 ```sh
-python3 "${CLAUDE_SKILL_DIR}/../../scripts/inventory.py" --cwd "$PWD" [flags] > <report_dir>/<yyyy-mm-dd>-manifest.json
+python3 "${CLAUDE_SKILL_DIR}/../../scripts/inventory.py" --cwd "$PWD" [flags] --out <report_dir>/<yyyy-mm-dd>-manifest.json
 ```
+
+Use `--out` (it creates `<report_dir>`), not a shell redirect or `mkdir`: headless runs allow only these two script commands.
 
 - `quick` / `full`: add `--refresh-marketplaces --run-trackers` (the refresh updates the local marketplace clones so version drift is real; trackers run their count command, e.g. `bd stats`).
 - `report`: add neither, unless the `refresh_marketplaces` option is on. Never run anything that writes outside `<report_dir>`.
-- `<report_dir>` defaults to `~/.claude/context-cleaning-crew/reports/`; create it if missing.
+- `<report_dir>` defaults to `~/.claude/context-cleaning-crew/reports/`.
 - **Another setup** (a backup, a copy, a fixture): when the user names one, pass `--home <its home>` and `--cwd <its working tree>`, and run in `report` mode whatever mode was asked for — the `claude plugin`/`claude mcp` commands the executor uses always act on the live setup, so cleaning a different tree is out of scope. Say so in one line.
 
 Read the manifest. It never contains secret values (they appear as `<redacted:<type>>`) — **never print, log or pass a secret value**, even if you find one elsewhere. Identify secrets by file + key + type only.
@@ -58,7 +60,13 @@ Follow `references/executor-rules.md` exactly: back up first to a persistent dir
 
 ## Phase 5 — Report
 
-Write `<report_dir>/<yyyy-mm-dd>-<mode>.md` from `references/report-template.md`, diffing against the previous manifest in `<report_dir>` when one exists. Tell the user the path and the before/after always-on estimate.
+Write `<report_dir>/<yyyy-mm-dd>-<mode>.md` from `references/report-template.md`, diffing against the previous manifest in `<report_dir>` (the newest older `*-manifest.json`, found with Glob) when one exists. Get the headline numbers from:
+
+```sh
+python3 "${CLAUDE_SKILL_DIR}/../../scripts/compare.py" <this manifest> [<previous manifest>]
+```
+
+Tell the user the report path and the before/after always-on estimate. In `report` mode, make the **last line** of your reply exactly that `compare.py` line, so a scheduled run's notifier can show it (see `references/routine-setup.md`).
 
 ## Out of scope
 
