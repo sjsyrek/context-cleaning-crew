@@ -21,6 +21,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **Git remote URLs never carry credentials into the manifest**, whatever the token format: the userinfo of a `scheme://` URL (`user:password@`, a bare token) and any query string are masked before the usual secret patterns run. Found by an automated security review of the staleness facts.
 - **Auditing another home no longer mixes in the live install's numbers.** `claude plugin details`, the marketplace refresh and CLI version probes always describe the live setup, so they are skipped when `--home` isn't the running user's home; the manifest records `live_setup`, and costs and CLI versions read "not checked: not the live setup". Found by the headless report run on a fixture copy, which reported a live plugin's token cost.
 - **Absolute home paths no longer appear in free-text fields** such as hook commands; they are written as `~`, like every other path in the manifest. Found by a smoke run against a real setup.
 - **No secret value reaches the manifest through free text.** Permission rule text, instruction-file lines, section headings and reasoning env values are now redacted (`<redacted:<type>>`), and the secrets scan also covers permission rules and every CLAUDE.md/AGENTS.md line. Extra patterns from `--secret-pattern` apply to both. Found by an automated security review of the first slice.

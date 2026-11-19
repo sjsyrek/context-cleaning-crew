@@ -491,7 +491,7 @@ class StalenessFactsTest(unittest.TestCase):
                         {"name": "backup", "url": "~/backups/proj.git"},
                         {
                             "name": "origin",
-                            "url": "https://x:<redacted:github-token>@example.invalid/proj.git",
+                            "url": "https://<redacted:userinfo>@example.invalid/proj.git",
                         },
                     ],
                 }
@@ -500,6 +500,26 @@ class StalenessFactsTest(unittest.TestCase):
 
     def test_a_working_tree_without_git_has_no_git_facts(self) -> None:
         self.assertEqual(manifest()["facts"]["git"], [])
+
+
+class RemoteUrlCredentialsTest(unittest.TestCase):
+    def test_userinfo_and_query_strings_are_masked_whatever_the_token_format(self) -> None:
+        from ccc_inventory.facts import mask_url
+
+        self.assertEqual(
+            mask_url("https://alice:hunter2@git.example.invalid/p.git"),
+            "https://<redacted:userinfo>@git.example.invalid/p.git",
+        )
+        self.assertEqual(
+            mask_url("https://glpat-abc123@gitlab.example.invalid/p.git"),
+            "https://<redacted:userinfo>@gitlab.example.invalid/p.git",
+        )
+        self.assertEqual(
+            mask_url("https://h.example.invalid/p.git?private_token=abc"),
+            "https://h.example.invalid/p.git?<redacted:query>",
+        )
+        self.assertEqual(mask_url("git@github.com:owner/repo.git"), "git@github.com:owner/repo.git")
+        self.assertEqual(mask_url("~/backups/proj.git"), "~/backups/proj.git")
 
 
 if __name__ == "__main__":

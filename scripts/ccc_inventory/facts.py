@@ -22,6 +22,14 @@ AFTER = re.compile(
 BEFORE = re.compile(r"\b(?:install(?:ed)?|brew install|npm install -g|pipx install)\s+`$")
 REMOTE = re.compile(r'^\[remote "([^"]+)"\]\s*$')
 URL = re.compile(r"^\s*url\s*=\s*(.+?)\s*$")
+USERINFO = re.compile(r"^([A-Za-z][A-Za-z0-9+.-]*://)[^/@\s]+@")
+QUERY = re.compile(r"\?.*$")
+
+
+def mask_url(url: str) -> str:
+    """Drop credentials in any format: the userinfo of a `scheme://` URL, and any query string.
+    scp-style `git@host:path` has a user name only and is kept."""
+    return QUERY.sub("?<redacted:query>", USERINFO.sub(r"\1<redacted:userinfo>@", url))
 
 
 def tool_names(text: str) -> set[str]:
@@ -74,7 +82,7 @@ def remotes(ctx: Context, config: Path) -> list[dict[str, str]]:
         elif line.strip().startswith("["):
             current = ""
         elif current and (url := URL.match(line)):
-            found[current] = ctx.redact(url.group(1))
+            found[current] = ctx.redact(mask_url(url.group(1)))
     return [{"name": n, "url": found[n]} for n in sorted(found)]
 
 
