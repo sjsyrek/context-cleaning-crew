@@ -19,6 +19,7 @@ You own staleness.
 3. **Removed tools.** `removed_tool_refs`: each reference in the user's own skills, agents or commands is a `fix` naming the replacement. `claude plugin validate` passes these files, so validation isn't enough. Propose the manifest's `replacement`, never one of your own. Conditional entries (TodoWrite/TaskCreate) depend on the model and env: give the condition, and never propose a tool gated by the same condition as the fix.
 4. **Version drift.** `drift.marketplace` `behind` is `fix` (update); `drift.cli` `differs` is `fix` or `ask` (which side to move). If `drift.refreshed` is false, say the comparison used cached clones.
 5. **Counts.** Use `counts` (the command that includes closed items). Never recount with the `avoid` command.
+6. **Leftover state.** `leftovers` with `kind: empty-tracker-dir` is an empty tracker directory nearest the working tree, so the tracker's CLI uses it instead of the real one it `shadows`. That's a `fix` (remove the empty directory, `confirm: false`, reversible), and it often explains a tracker hook that seems to show no issues. `counts[].shadowed_by_empty` marks the count it affects.
 
 ## Rules for every seat
 

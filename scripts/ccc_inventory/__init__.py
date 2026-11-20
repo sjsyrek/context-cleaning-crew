@@ -72,5 +72,6 @@ def build_manifest(ctx: Context) -> dict[str, Any]:
         "drift": drift.collect(ctx, refreshed),
         "overlap": overlap.collect(ctx),
         "counts": counts.collect(ctx),
+        "leftovers": counts.leftovers(ctx),
         "secrets": secrets.collect(ctx, files, instructions.load_path(ctx)),
     }
