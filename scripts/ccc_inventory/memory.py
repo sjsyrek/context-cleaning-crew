@@ -66,55 +66,38 @@ def normalize(body: str) -> str:
 def duplicates(ctx: Context, dirs: list[Path]) -> list[dict[str, Any]]:
     """Personal (user or feedback) memories in several project directories with the same body or
     the same `name:`. Linked matches merge into one group: one fact, one move to a global place."""
-    files: list[tuple[Path, str, str, str]] = []  # path, type, name key, body key
+    files: list[tuple[Path, str]] = []  # path, type
+    by_key: dict[tuple[str, str], set[int]] = {}  # ("name" | "body", key) -> file indexes
     for d in dirs:
         for path in sorted(d.glob("*.md")):
-            if path.name == "MEMORY.md":
-                continue
             text = read_text(path) or ""
             kind = memory_type(text)
-            if kind not in PERSONAL_TYPES:
+            if path.name == "MEMORY.md" or kind not in PERSONAL_TYPES:
                 continue
             front, body = frontmatter_and_body(text)
             m = NAME.search(front)
-            files.append((path, kind, m.group(1) if m else "", normalize(body)))
+            for how, key in (("name", m.group(1) if m else ""), ("body", normalize(body))):
+                if key:
+                    by_key.setdefault((how, key), set()).add(len(files))
+            files.append((path, kind))
 
-    parent = list(range(len(files)))
+    groups: list[tuple[set[str], set[int]]] = []  # (how they match, members); pairwise disjoint
+    for (how, _), members in sorted(by_key.items()):
+        if len({files[i][0].parent for i in members}) < 2:
+            continue  # one directory: not a scope problem
+        linked = [g for g in groups if g[1] & members]
+        groups = [g for g in groups if not g[1] & members]
+        groups.append(({how}.union(*(g[0] for g in linked)), members.union(*(g[1] for g in linked))))
 
-    def find(i: int) -> int:
-        while parent[i] != i:
-            parent[i] = parent[parent[i]]
-            i = parent[i]
-        return i
-
-    matched: dict[int, set[str]] = {}
-    for i in range(len(files)):
-        for j in range(i + 1, len(files)):
-            if files[i][0].parent == files[j][0].parent:
-                continue  # one directory: not a scope problem
-            how = {
-                k
-                for k, a, b in (("name", files[i][2], files[j][2]), ("body", files[i][3], files[j][3]))
-                if a and a == b
-            }
-            if how:
-                ri, rj = find(i), find(j)
-                parent[ri] = rj
-                matched.setdefault(i, set()).update(how)
-                matched.setdefault(j, set()).update(how)
-
-    groups: dict[int, list[int]] = {}
-    for i in matched:
-        groups.setdefault(find(i), []).append(i)
     found = []
-    for members in groups.values():
-        members.sort(key=lambda i: str(files[i][0]))
+    for how_matched, members in groups:
+        paths = sorted((files[i][0] for i in members), key=str)
         found.append(
             {
-                "match": sorted(set().union(*(matched[i] for i in members))),
+                "match": sorted(how_matched),
                 "type": "/".join(sorted({files[i][1] for i in members})),
-                "files": [ctx.display(files[i][0]) for i in members],
-                "projects": sorted({files[i][0].parent.parent.name for i in members}),
+                "files": [ctx.display(path) for path in paths],
+                "projects": sorted({path.parent.parent.name for path in paths}),
             }
         )
     return sorted(found, key=lambda g: g["files"])
