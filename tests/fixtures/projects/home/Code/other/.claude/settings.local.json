@@ -1,0 +1,5 @@
+{
+  "permissions": {
+    "allow": ["Bash(export DB_PASSWORD=Opaque-Pw-7731 && psql:*)", "Read"]
+  }
+}

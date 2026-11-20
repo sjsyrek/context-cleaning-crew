@@ -49,6 +49,11 @@ def build_manifest(ctx: Context) -> dict[str, Any]:
     installed_names = plugins.plugin_names([p["id"] for p in plugin_section["installed"]])
     servers = mcp.server_names(ctx)
     rules = permissions.all_rules(ctx, files)
+    others = permissions.other_project_files(ctx, files)  # never joins `files`
+    permission_section = permissions.collect(ctx, files, servers, installed_names)
+    permission_section["other_projects"] = permissions.other_projects(
+        ctx, files, others, servers, installed_names
+    )
     memory_section = memory.collect(ctx)
     memory_files = [f"{d['path']}/{f['name']}" for d in memory_section["dirs"] for f in d["files"]]
     return {
@@ -56,7 +61,7 @@ def build_manifest(ctx: Context) -> dict[str, Any]:
         "live_setup": ctx.live,
         "options": options_section(ctx),
         "settings": settings.collect(ctx, files),
-        "permissions": permissions.collect(ctx, files, servers, installed_names),
+        "permissions": permission_section,
         "plugins": plugin_section,
         "mcp": mcp.collect(ctx),
         "hooks": hooks.collect(ctx, files),
@@ -74,5 +79,5 @@ def build_manifest(ctx: Context) -> dict[str, Any]:
         "overlap": overlap.collect(ctx),
         "counts": counts.collect(ctx),
         "leftovers": counts.leftovers(ctx),
-        "secrets": secrets.collect(ctx, files, instructions.load_path(ctx)),
+        "secrets": secrets.collect(ctx, [*files, *others], instructions.load_path(ctx)),
     }

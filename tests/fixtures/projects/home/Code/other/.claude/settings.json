@@ -1,0 +1,24 @@
+{
+  "env": {
+    "GITHUB_TOKEN": "ghp_FAKEFAKEFAKEFAKEFAKEFAKEOTHER1"
+  },
+  "permissions": {
+    "allow": ["Bash(git:*)", "Bash(git status:*)"],
+    "deny": ["Bash(rm -rf:*)"]
+  },
+  "enabledPlugins": {
+    "planted@elsewhere": true
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./other-project-hook.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

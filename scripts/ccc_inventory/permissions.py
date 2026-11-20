@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import re
+from collections import Counter
 from dataclasses import dataclass
 from typing import Any
 
-from .context import Context, load_data
+from .context import Context, load_data, read_json_object
+from .memory import seen_projects
 from .settings import SettingsFile
 
 PERMISSIVE_MODES = ("acceptEdits", "bypassPermissions")
@@ -71,6 +73,43 @@ def all_rules(ctx: Context, files: list[SettingsFile]) -> list[Rule]:
                         if rule:
                             rules.append(rule)
     return rules
+
+
+def other_project_files(ctx: Context, files: list[SettingsFile]) -> list[SettingsFile]:
+    """Settings of the other projects in ~/.claude.json. Kept apart from `files`: they never feed
+    enable flags, hooks or options, only the secrets scan and `other_projects` counts."""
+    loaded = {f.path.resolve() for f in files}
+    found = []
+    for project in seen_projects(ctx):
+        for name, scope in (("settings.json", "project"), ("settings.local.json", "project-local")):
+            path = project / ".claude" / name
+            if path.is_file() and path.resolve() not in loaded:
+                loaded.add(path.resolve())
+                found.append(SettingsFile(path=path, scope=scope, data=read_json_object(path)))
+    return found
+
+
+def other_projects(
+    ctx: Context,
+    files: list[SettingsFile],
+    others: list[SettingsFile],
+    servers: list[str],
+    plugins: list[str],
+) -> list[dict[str, Any]]:
+    """Per project (with the user's settings, never another project's): rule counts per list and
+    finding counts per kind for each of its files. No rule text: redaction is pattern-only."""
+    user = [f for f in files if f.scope.startswith("user")]
+    found = []
+    for project in sorted({f.path.parent.parent for f in others}):
+        own = [f for f in others if f.path.parent.parent == project]
+        result = collect(ctx, [*user, *own], servers, plugins)
+        for f in own:
+            shown = ctx.display(f.path)
+            rules = Counter(r["list"] for r in result["rules"] if r["file"] == shown)
+            kinds = Counter(x["kind"] for x in result["findings"] if x["file"] == shown)
+            lists = {name: rules[name] for name in ("allow", "ask", "deny")}
+            found.append({"path": shown, "rules": lists, "findings": dict(sorted(kinds.items()))})
+    return found
 
 
 def default_mode(files: list[SettingsFile]) -> str | None:

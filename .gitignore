@@ -4,3 +4,5 @@ __pycache__/
 .ruff_cache/
 evals/results/
 .DS_Store
+# Planted test data: the global **/.claude/settings.local.json ignore must not drop fixtures.
+!tests/fixtures/**/.claude/settings.local.json
