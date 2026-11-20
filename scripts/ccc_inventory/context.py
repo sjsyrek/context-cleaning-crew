@@ -13,7 +13,7 @@ from typing import Any
 
 from .options import LoadedOptions, load_options
 from .redact import Pattern, redact
-from .runner import Runner
+from .runner import Runner, sandbox_argv
 
 DATA_DIR = Path(__file__).resolve().parent / "data"
 
@@ -30,6 +30,8 @@ class Context:
     live: bool = True  # home is the running user's: `claude plugin ...` and CLI probes describe it
     options: LoadedOptions = field(default_factory=lambda: load_options([]))  # defaults unless given
     today: date = field(default_factory=date.today)  # the usage window ends here
+    dry_run_hooks: bool = False  # runs context-injecting hooks in a sandbox to measure their output
+    hook_sandbox: Callable[[str, Path], list[str] | None] = sandbox_argv
 
     NOT_LIVE = "not checked: not the live setup"
 

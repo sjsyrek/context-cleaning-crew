@@ -1,0 +1,1 @@
+{"version": 2, "plugins": {"greeter@local": [{"scope": "user", "installPath": "~/.claude/plugins/cache/local/greeter/1.0.0", "version": "1.0.0"}]}}

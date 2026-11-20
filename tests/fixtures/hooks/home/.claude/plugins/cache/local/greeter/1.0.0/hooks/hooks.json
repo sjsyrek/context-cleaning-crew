@@ -1,0 +1,1 @@
+{"hooks": {"SessionStart": [{"matcher": "startup", "hooks": [{"type": "command", "command": "\"${CLAUDE_PLUGIN_ROOT}/hello.sh\"", "timeout": 5}]}]}}

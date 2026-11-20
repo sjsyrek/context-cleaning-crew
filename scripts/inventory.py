@@ -2,7 +2,7 @@
 """Print the Context Cleaning Crew manifest for a Claude Code setup as sorted JSON.
 
 Read-only. `--offline` skips every external command (marketplace refresh, `claude plugin details`,
-CLI version probes) so the output depends only on files.
+CLI version probes, the hook dry run) so the output depends only on files.
 """
 
 from __future__ import annotations
@@ -34,6 +34,11 @@ def main(argv: list[str]) -> int:
     )
     parser.add_argument(
         "--run-trackers", action="store_true", help="run tracker count commands such as `bd stats`"
+    )
+    parser.add_argument(
+        "--dry-run-hooks",
+        action="store_true",
+        help="run context-injecting hooks in a sandbox (macOS) to measure their output; opt-in",
     )
     parser.add_argument(
         "--mode",
@@ -68,6 +73,7 @@ def main(argv: list[str]) -> int:
         run_trackers=(args.run_trackers or trackers) and not args.offline,
         live=args.home.resolve() == real_home.resolve(),
         options=loaded,
+        dry_run_hooks=args.dry_run_hooks and not args.offline,
     )
     manifest = build_manifest(ctx)
     text = json.dumps(manifest, sort_keys=True, indent=2) + "\n"

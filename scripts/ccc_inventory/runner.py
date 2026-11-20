@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import subprocess
-from collections.abc import Sequence
+import sys
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Protocol
 
 
@@ -16,7 +18,14 @@ class CommandResult:
 
 
 class Runner(Protocol):
-    def run(self, argv: Sequence[str]) -> CommandResult: ...
+    def run(
+        self,
+        argv: Sequence[str],
+        *,
+        stdin: str | None = None,
+        cwd: Path | None = None,
+        env: Mapping[str, str] | None = None,
+    ) -> CommandResult: ...
 
 
 class SubprocessRunner:
@@ -25,12 +34,23 @@ class SubprocessRunner:
     def __init__(self, timeout_seconds: float = 30.0) -> None:
         self.timeout_seconds = timeout_seconds
 
-    def run(self, argv: Sequence[str]) -> CommandResult:
+    def run(
+        self,
+        argv: Sequence[str],
+        *,
+        stdin: str | None = None,
+        cwd: Path | None = None,
+        env: Mapping[str, str] | None = None,
+    ) -> CommandResult:
         try:
             done = subprocess.run(
                 list(argv),
+                input=stdin,
+                cwd=cwd,
+                env=dict(env) if env is not None else None,
                 capture_output=True,
                 text=True,
+                errors="replace",
                 timeout=self.timeout_seconds,
                 check=False,
             )
@@ -46,7 +66,27 @@ class FakeRunner:
         self.responses = responses
         self.calls: list[tuple[str, ...]] = []
 
-    def run(self, argv: Sequence[str]) -> CommandResult:
+    def run(
+        self,
+        argv: Sequence[str],
+        *,
+        stdin: str | None = None,
+        cwd: Path | None = None,
+        env: Mapping[str, str] | None = None,
+    ) -> CommandResult:
         key = tuple(argv)
         self.calls.append(key)
         return self.responses.get(key, CommandResult(returncode=127, stdout="", stderr="not found"))
+
+
+def sandbox_argv(command: str, writable: Path) -> list[str] | None:
+    """Run a shell command with no network and no file writes outside `writable`, or None where no
+    sandbox is available (only macOS `sandbox-exec` for now: a dry run without one never runs)."""
+    if sys.platform != "darwin":
+        return None
+    root = str(writable.resolve()).replace("\\", "\\\\").replace('"', '\\"')
+    profile = (
+        "(version 1)(allow default)(deny network*)(deny file-write*)"
+        f'(allow file-write* (subpath "{root}"))(allow file-write* (literal "/dev/null"))'
+    )
+    return ["/usr/bin/sandbox-exec", "-p", profile, "/bin/sh", "-c", command]
