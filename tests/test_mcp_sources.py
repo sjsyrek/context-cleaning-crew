@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from typing import Any
@@ -74,6 +76,48 @@ class McpKeeperTest(unittest.TestCase):
     def test_a_protected_plugin_protects_its_server(self) -> None:
         group = self.group(protected=("docs-helper",))
         self.assertEqual((group["keeper"], group["rule"]), ("plugin_docs-helper_search", "protected"))
+
+
+QUERY_KEY = "3f1c9a2e-7b4d-4e8a-9c61-5d2f0b7a8e14"
+OTHER_KEY = "a0b1c2d3-e4f5-4a6b-8c7d-9e0f1a2b3c4d"
+PASSWORD = "hunter2-opaque-pw"
+
+
+class UrlSecretsTest(unittest.TestCase):
+    """A credential in an MCP URL's query string or userinfo never reaches the manifest."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        home = Path(self.tmp.name) / "home"
+        (home / "Code" / "app").mkdir(parents=True)
+        servers = {
+            "query-a": {"type": "http", "url": f"https://mcp.example.invalid/v1?api_key={QUERY_KEY}"},
+            "query-b": {"type": "http", "url": f"https://mcp.example.invalid/v1?api_key={OTHER_KEY}"},
+            "query-c": {"type": "http", "url": f"https://mcp.example.invalid/v1?api_key={QUERY_KEY}"},
+            "userinfo-a": {"type": "http", "url": f"https://bot:{PASSWORD}@auth.example.invalid/mcp"},
+            "userinfo-b": {"type": "http", "url": f"https://bot:{PASSWORD}@auth.example.invalid/mcp"},
+        }
+        (home / ".claude.json").write_text(json.dumps({"mcpServers": servers}))
+        ctx = Context(home=home, cwd=home / "Code" / "app", runner=FakeRunner({}))
+        self.manifest = build_manifest(ctx)
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def test_no_url_credential_appears_anywhere_in_the_manifest(self) -> None:
+        text = json.dumps(self.manifest)
+        for secret in (QUERY_KEY, OTHER_KEY, PASSWORD):
+            self.assertNotIn(secret, text)
+
+    def test_urls_differing_only_in_their_query_group_as_one_server(self) -> None:
+        groups = {d["target"]: d["servers"] for d in self.manifest["mcp"]["duplicates"]}
+        self.assertEqual(
+            groups,
+            {
+                "https://mcp.example.invalid/v1?<redacted:query>": ["query-a", "query-b", "query-c"],
+                "https://<redacted:userinfo>@auth.example.invalid/mcp": ["userinfo-a", "userinfo-b"],
+            },
+        )
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from .context import Context, read_json_object
+from .facts import mask_url
 from .keeper import pick_server_keeper
 from .plugins import expand, installed
 
@@ -74,13 +75,15 @@ DEPRECATED_TRANSPORTS = ("sse",)
 
 
 def target(server: dict[str, Any]) -> str:
+    """The URL, or the command line, with URL userinfo and query strings masked: credentials in
+    any format stay out of the manifest, and servers differing only in their query group together."""
     if isinstance(server.get("url"), str):
-        return str(server["url"])
+        return mask_url(str(server["url"]))
     command = server.get("command")
     args = server.get("args")
     parts = [str(command)] if isinstance(command, str) else []
     parts += [str(a) for a in args] if isinstance(args, list) else []
-    return " ".join(parts)
+    return mask_url(" ".join(parts))
 
 
 def collect(ctx: Context) -> dict[str, Any]:
