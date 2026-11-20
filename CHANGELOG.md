@@ -33,6 +33,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **Tracker counts run in the audited working tree.** With `--run-trackers`, `bd stats` ran in whatever directory the script was started from, so a `--cwd` elsewhere counted the wrong tracker.
 - **Removed-tool references always name a replacement**, including the conditional TodoWrite/TaskCreate entries, so a review no longer invents one. A full-mode run had proposed rewriting a TodoWrite command for TaskCreate, which is gated by the same condition.
 - **Git remote URLs never carry credentials into the manifest**, whatever the token format: the userinfo of a `scheme://` URL (`user:password@`, a bare token) and any query string are masked before the usual secret patterns run, including quoted git values and passwords containing `@`, `?`, `#` or spaces. Found by automated security reviews of the staleness facts.
 - **Auditing another home no longer mixes in the live install's numbers.** `claude plugin details`, the marketplace refresh and CLI version probes always describe the live setup, so they are skipped when `--home` isn't the running user's home; the manifest records `live_setup`, and costs and CLI versions read "not checked: not the live setup". Found by the headless report run on a fixture copy, which reported a live plugin's token cost.

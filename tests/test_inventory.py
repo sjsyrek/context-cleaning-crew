@@ -280,6 +280,10 @@ class TrackerCountsTest(unittest.TestCase):
         self.assertIn("Closed: 9", counts[0]["output"])
         self.assertNotIn(("bd", "list"), runner.calls)
 
+    def test_tracker_command_runs_in_the_audited_working_tree(self) -> None:
+        _, runner = online_manifest()
+        self.assertEqual(runner.cwds[("bd", "stats")], FIXTURE_CWD)
+
     def test_tracker_commands_do_not_run_unless_allowed(self) -> None:
         counts = manifest()["counts"]
         self.assertEqual(counts[0]["output"], "")

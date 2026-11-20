@@ -65,6 +65,7 @@ class FakeRunner:
     def __init__(self, responses: dict[tuple[str, ...], CommandResult]) -> None:
         self.responses = responses
         self.calls: list[tuple[str, ...]] = []
+        self.cwds: dict[tuple[str, ...], Path | None] = {}  # last cwd per argv
 
     def run(
         self,
@@ -76,6 +77,7 @@ class FakeRunner:
     ) -> CommandResult:
         key = tuple(argv)
         self.calls.append(key)
+        self.cwds[key] = cwd
         return self.responses.get(key, CommandResult(returncode=127, stdout="", stderr="not found"))
 
 

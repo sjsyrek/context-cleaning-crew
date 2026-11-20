@@ -63,7 +63,7 @@ def collect(ctx: Context) -> list[dict[str, Any]]:
             "shadowed_by_empty": ctx.display(markers[-1]) if is_empty(markers[-1]) else "",
         }
         if ctx.run_trackers:
-            result = ctx.runner.run(command)
+            result = ctx.runner.run(command, cwd=ctx.cwd)
             lines = result.stdout.splitlines()[:MAX_OUTPUT_LINES]
             entry["output"] = ctx.redact("\n".join(lines))
             entry["status"] = "ok" if result.returncode == 0 else f"exit {result.returncode}"
