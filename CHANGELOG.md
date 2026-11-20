@@ -57,4 +57,5 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Security
 
+- **The executor's backup `--stamp` must be a plain directory name** (letters, digits, `.`, `_`, `-`, not starting with `.`). A stamp such as `../x` or `a/b` could put a backup outside the backup directory; it is now refused with exit code 2 before anything is written.
 - **The hook dry run can't act through other processes, and runs only trusted hooks.** The sandbox also denies Mach lookups, LaunchServices and AppleEvents, so a hook can't have launchd, `open` or another app write outside the sandbox for it. Project-scope hooks (a repository's `.claude/settings.json`, untrusted until the user trusts the project) and hooks of disabled plugins are listed but never run, and only user settings decide whether a plugin counts as enabled, so a project file can't switch a plugin's hooks on. Each hook's own `timeout` applies, capped at 10 seconds. Found by an automated security review of the dry run.

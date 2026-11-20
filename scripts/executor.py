@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -25,6 +26,7 @@ from pathlib import Path
 from typing import Any
 
 SNAPSHOT = "enabledPlugins.json"
+STAMP = re.compile(r"[0-9A-Za-z._-]+")  # one plain directory name; no leading dot (checked too)
 
 
 class BackupError(Exception):
@@ -69,6 +71,8 @@ def backup(
     temp_roots: Sequence[Path] | None = None,
 ) -> Path:
     """Copy `files` into `backup_root/stamp`, mirroring their paths under `home`. Returns the dir."""
+    if not STAMP.fullmatch(stamp) or stamp.startswith("."):
+        raise BackupError(f"stamp {stamp!r} must be letters, digits, '.', '_' or '-', not starting with '.'")
     roots = system_temp_roots() if temp_roots is None else tuple(temp_roots)
     target = Path(os.path.abspath(backup_root))
     for root in roots:

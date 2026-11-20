@@ -146,6 +146,31 @@ class BackupGuardTest(unittest.TestCase):
         with self.assertRaises(BackupError):
             backup(self.home, [ROOT / "README.md"], self.home / "backups", STAMP)
 
+    def tree(self) -> list[str]:
+        return sorted(str(p.relative_to(self.tmp.name)) for p in Path(self.tmp.name).rglob("*"))
+
+    def test_a_stamp_that_is_not_a_plain_name_is_refused_and_nothing_is_written(self) -> None:
+        settings = self.home / ".claude" / "settings.json"
+        before = self.tree()
+        for stamp in ("../x", "a/b", ".hidden", "..", "", "a b", "/abs", "x\n"):
+            with self.assertRaises(BackupError, msg=repr(stamp)):
+                backup(self.home, [settings], self.home / "backups", stamp, temp_roots=())
+            self.assertEqual(self.tree(), before, msg=repr(stamp))
+
+    def test_a_plain_stamp_is_accepted(self) -> None:
+        dest = backup(self.home, [self.home / ".claude" / "settings.json"], self.home / "b", "v1.2_x-3", ())
+        self.assertEqual(dest, self.home / "b" / "v1.2_x-3")
+
+    def test_the_cli_refuses_a_path_stamp_with_exit_code_2(self) -> None:
+        before = self.tree()
+        argv = [sys.executable, str(ROOT / "scripts" / "executor.py"), "backup", "--home", str(self.home)]
+        argv += ["--backup-dir", str(self.home / "backups"), "--stamp", "../x"]
+        argv += [str(self.home / ".claude" / "settings.json")]
+        done = subprocess.run(argv, capture_output=True, text=True)
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("stamp", done.stderr)
+        self.assertEqual(self.tree(), before)
+
     def test_the_cli_refuses_a_temporary_dir_without_writing_anything(self) -> None:
         done = subprocess.run(
             [
