@@ -44,6 +44,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **`restore-flags` accepts an empty settings file.** A settings file holding `{}` (which an uninstall can leave behind) was refused as "not a JSON object", so the kept plugin's flag wasn't put back. A file that isn't a JSON object is still refused.
 - **Auditing a backup or copy no longer writes your own home path into the manifest.** Hook commands and other paths pointing into the running user's home (not the audited one) now read `~` as well. Found by dogfooding on a rebuilt pre-cleanup setup.
 - **Tracker counts run in the audited working tree.** With `--run-trackers`, `bd stats` ran in whatever directory the script was started from, so a `--cwd` elsewhere counted the wrong tracker.
 - **Removed-tool references always name a replacement**, including the conditional TodoWrite/TaskCreate entries, so a review no longer invents one. A full-mode run had proposed rewriting a TodoWrite command for TaskCreate, which is gated by the same condition.

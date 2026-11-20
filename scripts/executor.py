@@ -106,8 +106,13 @@ def restore_flags(home: Path, settings: Path, snapshot: Path, keep: Sequence[str
     """Re-add the snapshot's enabledPlugins entries for `keep` that are now missing or changed in
     `settings`. Parses and re-serializes only when something changes, then re-reads to validate."""
     before = read_object(snapshot).get(display(home, settings), {})
-    data = read_object(settings)
-    if not data and settings.exists():
+    data: Any = {}
+    if settings.exists():
+        try:
+            data = json.loads(settings.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            data = None
+    if not isinstance(data, dict):  # `{}` is a valid, empty settings file
         raise ValueError(f"{settings} is not a JSON object; restore it from the backup by hand")
     flags = data.get("enabledPlugins")
     current: dict[str, Any] = flags if isinstance(flags, dict) else {}

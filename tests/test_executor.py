@@ -79,6 +79,25 @@ class ScopeAliasingReplayTest(unittest.TestCase):
         )
         self.assertEqual(self.settings.read_bytes(), self.original)  # not even re-serialized
 
+    def test_an_empty_settings_object_gets_the_flag_back(self) -> None:
+        # `claude plugin uninstall` can leave `{}` behind: a valid settings file, not a broken one.
+        dest = backup(self.home, [self.settings], self.backups, STAMP, temp_roots=())
+        self.settings.write_text("{}\n")
+        restored = restore_flags(
+            self.home, self.settings, dest / "enabledPlugins.json", ["red-team@community-mkt"]
+        )
+        self.assertEqual(restored, ["red-team@community-mkt"])
+        self.assertEqual(read(self.settings), {"enabledPlugins": {"red-team@community-mkt": True}})
+
+    def test_a_settings_file_that_is_not_a_json_object_is_refused(self) -> None:
+        dest = backup(self.home, [self.settings], self.backups, STAMP, temp_roots=())
+        snapshot = dest / "enabledPlugins.json"
+        for broken in ("[]\n", "{not json\n"):
+            self.settings.write_text(broken)
+            with self.assertRaises(ValueError, msg=broken):
+                restore_flags(self.home, self.settings, snapshot, ["red-team@community-mkt"])
+            self.assertEqual(self.settings.read_text(), broken)
+
     def test_an_existing_backup_is_never_overwritten(self) -> None:
         backup(self.home, [self.settings], self.backups, STAMP, temp_roots=())
         with self.assertRaises(BackupError):
