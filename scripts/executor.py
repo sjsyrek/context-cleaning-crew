@@ -110,6 +110,23 @@ def read_object(path: Path) -> dict[str, Any]:
     return data if isinstance(data, dict) else {}
 
 
+def write_atomically(path: Path, text: str) -> None:
+    """A crash leaves the old file or the new one, never half of one: write a temp file next to
+    `path` (same filesystem), keep the old file's mode, then rename it over `path`."""
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+            f.flush()
+            os.fsync(f.fileno())
+        if path.exists():
+            shutil.copymode(path, tmp)
+        os.replace(tmp, path)
+    except BaseException:
+        Path(tmp).unlink(missing_ok=True)
+        raise
+
+
 def restore_flags(home: Path, settings: Path, snapshot: Path, keep: Sequence[str]) -> list[str]:
     """Re-add the snapshot's enabledPlugins entries for `keep` that are now missing or changed in
     `settings`. Parses and re-serializes only when something changes, then re-reads to validate."""
@@ -135,7 +152,7 @@ def restore_flags(home: Path, settings: Path, snapshot: Path, keep: Sequence[str
     for p in restored:
         current[p] = before[p]
     data["enabledPlugins"] = current
-    settings.write_text(json.dumps(data, indent=2) + "\n")
+    write_atomically(settings.resolve(), json.dumps(data, indent=2) + "\n")
     if read_object(settings).get("enabledPlugins") != current:
         raise RestoreError(f"{settings} did not re-read as written")
     return restored

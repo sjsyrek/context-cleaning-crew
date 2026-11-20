@@ -44,6 +44,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **`restore-flags` writes the settings file atomically** (a temporary file in the same directory, then `os.replace`), keeping the file's mode and writing through a symlink to its target, so a crash mid-write can't leave a truncated settings file.
 - **`restore-flags` refuses a settings file outside home with a clear message and exit code 2**, including a settings path symlinked out of home. It used to crash with a bare `ValueError` traceback. Every other refusal (a file that isn't a JSON object, a snapshot without the file) now exits 2 the same way.
 - **`restore-flags` refuses a snapshot that doesn't cover the settings file.** A snapshot without an entry for the file (or a missing snapshot) used to restore nothing and report success, so a lost flag went unnoticed. An entry holding `{}` (the file had no flags when it was backed up) is still valid and restores nothing.
 - **`restore-flags` accepts an empty settings file.** A settings file holding `{}` (which an uninstall can leave behind) was refused as "not a JSON object", so the kept plugin's flag wasn't put back. A file that isn't a JSON object is still refused.
