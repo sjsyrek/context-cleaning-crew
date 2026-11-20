@@ -32,6 +32,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- **The free-text redaction test checks deny-conflict lines and move-candidate headings** instead of `directives`, which is going away. The `messy` fixture plants a GitHub token in the line that contradicts a deny rule and an `sk-` key in the release-procedure heading; disabling redaction on either field fails the test.
 - **The skill and seats take options from the manifest.** The inventory runs with `--mode <mode> --save`, so the mode's refresh and tracker rules and the `report_dir` option are applied by the script rather than restated in the skill. Seats read `options.values` and `protected` from the manifest instead of from the coordinator's prompt. Full mode passes `full_mode_models` as the Agent tool's `model` parameter on every seat spawn (omitted for `inherit`), so the option decides instead of the agent files' frontmatter. Eval `04-full-mode` checks it with a new `seats-model` grader. The executor backs up to the `backup_dir` option and never touches a protected item, and the report lists ignored option values and protected entries that match nothing. Auditing another setup always runs the inventory in report mode.
 
 ### Removed

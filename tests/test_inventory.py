@@ -79,8 +79,11 @@ class SecretsTest(unittest.TestCase):
         m = manifest()
         rules = [r["rule"] for r in m["permissions"]["rules"]]
         self.assertTrue(any("<redacted:github-token>" in r for r in rules))
-        lines = [d["text"] for d in m["instructions"]["directives"]]
-        self.assertTrue(any("<redacted:slack-token>" in t for t in lines))
+        conflicts = [c["text"] for c in m["instructions"]["deny_conflicts"]]
+        line = "Use rm -rf build/ to clean before every build; the cache token is <redacted:github-token>."
+        self.assertEqual(conflicts, [line])
+        headings = [c["heading"] for c in m["instructions"]["move_candidates"]]
+        self.assertEqual(headings, ["Release procedure (registry key <redacted:api-key-sk>)"])
         env = {e["key"]: e["value"] for e in m["settings"]["reasoning_env"]}
         self.assertEqual(env["REASONING_PROXY_KEY"], "<redacted:api-key-sk>")
 
@@ -127,7 +130,7 @@ class InstructionFilesTest(unittest.TestCase):
         moves = self.instructions["move_candidates"]
         self.assertEqual(
             [(m["path"], m["heading"], m["steps"]) for m in moves],
-            [("~/Code/proj/CLAUDE.md", "Release procedure", 6)],
+            [("~/Code/proj/CLAUDE.md", "Release procedure (registry key <redacted:api-key-sk>)", 6)],
         )
 
 
