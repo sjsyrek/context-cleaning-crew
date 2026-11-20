@@ -15,6 +15,13 @@ DIRECTIVE = re.compile(r"\b(always|never|must|only|don't|do not|avoid|prefer|use
 LIST_MARKER = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+")
 ORDERED_STEP = re.compile(r"^\s*\d+[.)]\s+")
 MOVE_MIN_STEPS = 5
+TASK_MIN_STEPS = 3
+# A heading that names a one-off task, not a standing rule: its steps are needed only when doing it.
+TASK_HEADING = re.compile(
+    r"\b(?:when|before|after|checklist|procedure|how to|release|releasing|deploy\w*|publish\w*"
+    r"|pull requests?|merge requests?|onboarding|set ?up|migrat\w+|cutting)\b",
+    re.IGNORECASE,
+)
 
 
 def load_path(ctx: Context) -> list[Path]:
@@ -87,8 +94,15 @@ def move_candidates(ctx: Context, display: str, text: str) -> list[dict[str, Any
     steps = 0
 
     def close() -> None:
-        if heading and steps >= MOVE_MIN_STEPS:
-            found.append({"path": display, "line": start, "heading": heading, "steps": steps})
+        if not heading:
+            return
+        if steps >= MOVE_MIN_STEPS:
+            why = f"{steps} ordered steps"
+        elif steps >= TASK_MIN_STEPS and TASK_HEADING.search(heading):
+            why = f"task heading, {steps} steps"
+        else:
+            return
+        found.append({"path": display, "line": start, "heading": heading, "steps": steps, "why": why})
 
     for number, line in prose_lines(text):
         if re.match(r"^#{2,6}\s", line):
