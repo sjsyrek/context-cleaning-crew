@@ -19,6 +19,7 @@ claude -p "/context-cleaning-crew:context-cleaning-crew report" \
 - **The allowlist is the minimum report mode needs:** the two read-only scripts, file reads, and writes under the report directory only (`Edit(...)` rules cover the Write tool too). Nothing else is allowed: no `claude plugin`, no `claude mcp`, no network.
 - The script patterns end in `*` rather than `* *` because the skill quotes the script path (`python3 ".../inventory.py" --cwd …`). A pattern like `inventory.py *` would never match.
 - Run it from the directory whose project setup you want audited; `$HOME` is used for the user scope.
+- The `Edit(...)` rule names the default `report_dir`. If you set the `report_dir` option elsewhere, change the rule to match, or the report write is denied.
 - Report mode refreshes marketplace clones only when the `refresh_marketplaces` option is on. Otherwise the report says version drift was checked against the cached clones.
 
 The run writes `<yyyy-mm-dd>-manifest.json` and `<yyyy-mm-dd>-report.md` to the report directory. The **last line** of the reply is a one-line summary for notifications, for example:

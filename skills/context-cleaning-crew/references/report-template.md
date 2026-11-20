@@ -29,6 +29,10 @@ Claude Code <version> · manifest `<yyyy-mm-dd>-manifest.json` · backup `<path 
 
 - <steps only the user can take: revoke a token, toggle a claude.ai connector, sign out a session>
 
+## Options
+
+<only when `options.warnings` or `protected.unmatched` is non-empty: each ignored value and why, and protected entries that match nothing; omit otherwise>
+
 ## Since the last report
 
 <new, resolved and unchanged findings vs. the previous manifest; omit on the first run>

@@ -15,8 +15,8 @@ Send all five Agent calls in a **single message** so they run in parallel:
 | `context-cleaning-crew:workflow-advocate` | what to keep |
 
 - **Never pass `name`.** With agent teams enabled in settings, a `name` turns the spawn into a teammate. Unnamed spawns are subagents you can resume by the agent ID in the spawn result. Record the advocate's ID.
-- Pass `model` from the `full_mode_models` option (`analytical`, default `sonnet`). Omit it when the option is `inherit`.
-- Each prompt contains: the manifest path, the mode, the focus (if any), the `protected` and `preferred_marketplaces` values, and, for the overlap analyst only, the `anthropic-skills:*` names from your own available-skills list (seats can't see them). Don't paste the manifest itself, and never paste a secret.
+- **Model at spawn time:** pass the Agent tool's `model` parameter set to the manifest's `options.values.full_mode_models` (default `sonnet`) on every seat spawn. When it is `inherit`, omit `model` so the seats run on your model. The agent files' own `model:` is only a fallback; the option decides. You, the coordinator, do the synthesis on the session's model.
+- Each prompt contains: the manifest path, the mode, the focus (if any), and, for the overlap analyst only, the `anthropic-skills:*` names from your own available-skills list (seats can't see them). The seats read the options (`options.values`, `protected`) from the manifest themselves. Don't paste the manifest or option values, and never paste a secret.
 
 Seats run in the background, and you're notified as each finishes. Don't poll, and don't start the synthesis until all five are back. If a seat fails or returns no JSON, re-spawn it once. If it fails again, cover that lens yourself from the quick-mode checklist and say so in the report.
 

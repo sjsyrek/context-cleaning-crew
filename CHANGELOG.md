@@ -23,6 +23,10 @@ All notable changes to this project are documented here. The format follows [Kee
 - **Plugin manifest** (`.claude-plugin/plugin.json`).
 - **Tests** (`tests/`, `unittest`) against a synthetic `messy` home fixture, plus `pyproject.toml` for the ruff and mypy dev checks.
 
+### Changed
+
+- **The skill and seats take options from the manifest.** The inventory runs with `--mode <mode> --save`, so the mode's refresh and tracker rules and the `report_dir` option are applied by the script rather than restated in the skill. Seats read `options.values` and `protected` from the manifest instead of from the coordinator's prompt. Full mode passes `full_mode_models` as the Agent tool's `model` parameter on every seat spawn (omitted for `inherit`), so the option decides instead of the agent files' frontmatter. The executor backs up to the `backup_dir` option and never touches a protected item, and the report lists ignored option values and protected entries that match nothing. Auditing another setup always runs the inventory in report mode.
+
 ### Fixed
 
 - **Removed-tool references always name a replacement**, including the conditional TodoWrite/TaskCreate entries, so a review no longer invents one. A full-mode run had proposed rewriting a TodoWrite command for TaskCreate, which is gated by the same condition.

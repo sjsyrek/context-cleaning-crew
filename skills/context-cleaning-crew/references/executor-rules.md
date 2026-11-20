@@ -4,7 +4,7 @@ Apply only approved items. These rules come from a manual cleanup where each one
 
 ## Order (partial failure stays safe)
 
-1. **Back up** every file you will touch to `<backup_dir>/<yyyy-mm-dd-hhmm>/`, mirroring paths under `~`. Default `~/.claude/backups/context-cleaning-crew/` — persistent, never a temp or scratch directory (a wiped scratch directory once lost the only backup). Snapshot `enabledPlugins` from every settings file.
+1. **Back up** every file you will touch to `<backup_dir>/<yyyy-mm-dd-hhmm>/`, mirroring paths under `~`. `<backup_dir>` is the manifest's `options.values.backup_dir` (default `~/.claude/backups/context-cleaning-crew/`) — persistent, never a temp or scratch directory (a wiped scratch directory once lost the only backup). Snapshot `enabledPlugins` from every settings file.
 2. Settings edits (permissions, env, hooks).
 3. Plugin uninstalls (`claude plugin uninstall`), then restore any `enabledPlugins` entry the uninstall removed but the plan keeps (see scope aliasing).
 4. Marketplace removals (`claude plugin marketplace remove`).
@@ -15,6 +15,7 @@ Apply only approved items. These rules come from a manual cleanup where each one
 
 ## Rules
 
+- **Never touch a protected item** (manifest `protected`), even under `go`; if a plan line targets one, skip it and say why.
 - **Prefer the CLI** (`claude plugin …`, `claude mcp …`) over editing JSON. When JSON must be edited, parse and re-serialize, validate, and diff against the backup.
 - **Scope aliasing:** when the working directory is the home directory, `~/.claude/settings.json` is both user and project settings. Uninstalling a project-scope copy can delete the user-scope copy's enable flag. Compare `enabledPlugins` with the snapshot after every uninstall and restore only the intended entries.
 - **Uninstalling deletes the enable flag** — expected for removals, a surprise for duplicates.
@@ -24,6 +25,6 @@ Apply only approved items. These rules come from a manual cleanup where each one
 - **Ask before deleting a credentials file,** even an unused one, and tell the user what only they can do: revoke the token or sign out.
 - **After swapping an MCP provider,** verify it connects and authenticates and re-check tool names; permission rules keyed on old names silently stop matching.
 - **Connectivity failures are out of scope.** Report and move on.
-- **Refresh before comparing versions** (the inventory's `--refresh-marketplaces`); `claude plugin update` alone only checks the local clone.
+- **Refresh before comparing versions** (the inventory's `--mode quick|full`, or `--refresh-marketplaces`); `claude plugin update` alone only checks the local clone.
 - **Validation is not compatibility.** `claude plugin validate` passes plugins that call removed tools.
 - Stop at the first failed step, report what was applied and what wasn't, and point to the backup.
