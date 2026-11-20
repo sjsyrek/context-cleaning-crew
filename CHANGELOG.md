@@ -34,6 +34,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 - **The skill and seats take options from the manifest.** The inventory runs with `--mode <mode> --save`, so the mode's refresh and tracker rules and the `report_dir` option are applied by the script rather than restated in the skill. Seats read `options.values` and `protected` from the manifest instead of from the coordinator's prompt. Full mode passes `full_mode_models` as the Agent tool's `model` parameter on every seat spawn (omitted for `inherit`), so the option decides instead of the agent files' frontmatter. Eval `04-full-mode` checks it with a new `seats-model` grader. The executor backs up to the `backup_dir` option and never touches a protected item, and the report lists ignored option values and protected entries that match nothing. Auditing another setup always runs the inventory in report mode.
 
+### Removed
+
+- **The hook dry run.** `--dry-run-hooks`, the macOS `sandbox-exec` wrapper and each hook's `dry_run` field are gone, along with the runner's `stdin`, `env` and per-call `timeout` parameters that only the dry run used. It was the only path that ran code from config, it wasn't limited to the live setup, and its sandbox still let a hook read the home directory and send signals. Hooks from settings and plugins are still listed, with `injects_context`. The reviewer now reads a context-injecting hook's script statically for output size and malformed JSON, and the report says hook output wasn't measured.
+
 ### Fixed
 
 - **Auditing a backup or copy no longer writes your own home path into the manifest.** Hook commands and other paths pointing into the running user's home (not the audited one) now read `~` as well. Found by dogfooding on a rebuilt pre-cleanup setup.

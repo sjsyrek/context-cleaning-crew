@@ -16,6 +16,8 @@ Claude Code <version> · manifest `<yyyy-mm-dd>-manifest.json` · backup `<path 
 | Memory indexes (bytes/4) | ~N tok | ~N tok |
 | **Total** | **~N tok** | **~N tok** |
 
+Context-injecting hooks: N (output not measured: the inventory never runs hooks; sizes, if any, come from reading the scripts).
+
 ## Changes made
 
 | # | Target | Change | Verified |

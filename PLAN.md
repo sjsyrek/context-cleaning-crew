@@ -71,7 +71,7 @@ Python 3 standard library only, compatible with the stock macOS Python (3.9). It
   - transport, flagging deprecated ones such as SSE where the provider offers HTTP
   - connection status if obtainable (`claude mcp list`)
   - flag inline secrets in args or env
-- **SessionStart / PreCompact / UserPromptSubmit hooks:** run each hook command in a sandboxed dry run only if the user opts in; otherwise record the command. Hook output is injected context, so its size matters. Flag hooks that print malformed JSON, which is silently ignored.
+- **SessionStart / PreCompact / UserPromptSubmit hooks:** list each hook command (settings and plugins) and mark the events whose output is injected context. The inventory never runs a hook: running code from config was the one path that could act on the system, so the reviewer reads the hook script statically for output size and malformed JSON (which Claude Code silently ignores), and the report says hook output wasn't measured.
 - **Usage signals:**
   - skill usage counts and last-used dates from `~/.claude.json` (`skillUsage`)
   - MCP tool usage is NOT reliably in `~/.claude.json`, so optionally mine `~/.claude/projects/*/*.jsonl` transcripts for `mcp__<server>__` tool calls over the last N days (opt-in; read-only; counts only, never content)
@@ -211,7 +211,7 @@ Synthetic `~/.claude` fixtures covering:
 - a dangling enable flag
 - planted fake secrets
 - a stale memory whose claim a test command can disprove
-- an oversized SessionStart hook, and one with malformed JSON
+- context-injecting hooks in settings and in a plugin (listed, never run)
 - an empty directory shadowing a real tracker
 - an unused marketplace
 - a plugin behind its marketplace, and one behind the CLI it wraps
