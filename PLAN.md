@@ -203,6 +203,30 @@ context-cleaning-crew/
 8. **Dogfood on a real setup in report mode first,** then quick mode with approvals. Compare against the 2026-11-16/17 manual cleanup (`~/.claude/backups/config-cleanup-2026-11-17`): the audit of the pre-cleanup state should find what the manual run found.
 9. **Register in the `claude-plugins` marketplace** only after the user approves.
 
+### Step 8: definition of done
+
+Step 8 is done when a report-mode run on a rebuild of the pre-cleanup setup surfaces every row marked **script** or **reviewer** below, and one live report run passes the read-only hash gate (nothing under `~/.claude` changes except the report directory, `update_check`'s state file and, with refresh on, `~/.claude/plugins/marketplaces/**`).
+
+How the table was produced (2026-11-20): the rebuild holds the seven files of `~/.claude/backups/config-cleanup-2026-11-17` at their original paths (byte-identical), plus a reconstructed `~/.claude.json` and plugin registry. On a copy, `scripts/inventory.py --home <copy> --mode report` ran twice, with `--cwd <copy>` (the setup the manual run used, cwd = home) and `--cwd <copy>/Code/spacebar` (so `~/Code/CLAUDE.md` is in the load path). The copy's `projects` keys were rewritten from `/Users/steven/…` to `~/…` first: absolute keys point at the live tree (see open questions).
+
+| # | Finding of the 2026-11-16/17 manual cleanup | Caught by | How |
+|---|---|---|---|
+| 1 | Global preferences lived in `~/Code/CLAUDE.md`, which loads only under `~/Code` (moved to `~/.claude/CLAUDE.md`) | reviewer | `instructions.files` lists `~/Code/CLAUDE.md` (~1,492 tok); `projects` lists six projects below `~/Code`; checklist line: a CLAUDE.md above several projects |
+| 2 | Release and pull-request procedures in that file (four steps each) became the `release` and `pr-description` skills | reviewer | below the five-step `move_candidates` rule (empty); checklist line: one-off task procedures under a task heading |
+| 3 | Blanket `Bash` allow with `defaultMode: acceptEdits` (replaced by `auto`) | script | `permissions.findings`: `blanket-allow-with-permissive-mode` |
+| 4 | Redundant allow rules in other projects' `settings.local.json` (four files backed up) | script | `permissions.other_projects`: 5, 12 and 28 `redundant-allow` in `~/Code`, `savemyreceipts` and `spacebar` (counts only) |
+| 5 | Scope aliasing: cwd = home, so uninstalling a project-scope copy deleted the user-scope enable flag | script | `settings.scope_aliasing.aliased: true` (cwd = home run); executor `backup` + `restore-flags` |
+| 6 | Stale claims in the spacebar memory | reviewer | `memory.dirs` (48 index lines) and `facts`; the memory curator checks each claim |
+| 7 | Nine plugins disabled | partly reviewer; not rebuildable: plugin/MCP state | `overlap.builtin` names five plugins a built-in may replace and `usage.skills` has counts, but per-plugin cost reads "not checked: not the live setup" and the enabled set comes from the live install |
+| 8 | beads plugin behind its marketplace (updated to 1.3.4) | not rebuildable: plugin/MCP state | the reconstructed registry already has 1.3.4 (`drift.marketplace`: `current`); `drift` is fixture-tested |
+| 9 | Removed tools (`TeamCreate`, broadcast `SendMessage`) in a plugin the user authors | not rebuildable: plugin/MCP state | the plugin's source isn't in the backup; `removed_tool_refs` is fixture-tested |
+| 10 | MCP provider routed through an account-level connector; tool-name prefixes changed | not rebuildable: plugin/MCP state | connector state isn't in local files |
+| 11 | Empty tracker directory shadowing the real one | not rebuildable: project tree not in the backup | `leftovers` is fixture-tested |
+| 12 | `bd list` hid closed issues (`bd stats` didn't) | not rebuildable: tracker state, and report mode runs no tracker | `counts` names `bd stats`; fixture-tested |
+| 13 | Credentials file with a leaked token | not rebuildable: not in the backup | `secrets` is empty on the rebuild; the scan is fixture-tested |
+
+Found beyond the manual run: the dead allow rule `Search` (`rule-matches-no-tool`: unknown tool), and the redundant rules in `~/Code/.claude/settings.local.json`.
+
 ## Testing
 
 Synthetic `~/.claude` fixtures covering:
@@ -226,6 +250,8 @@ Synthetic `~/.claude` fixtures covering:
 The executor runs against a copy of the fixture, and tests assert the resulting tree. Non-negotiable tests: report mode leaves the fixture byte-identical, and the update hook prints nothing except after a new successful update.
 
 ## Open questions
+
+- Auditing a copy: absolute paths in the copied `~/.claude.json` (`projects` keys) and plugin registry (`installPath`) point at the live tree, so a backup audit reads live project settings and plugin files (read-only, redacted, but shown as `~/…` like the copy's). Rebasing the running user's home onto `--home` when `live_setup` is false would fix it.
 
 - Whether to estimate tokens for CLAUDE.md and memory with a tokenizer or a bytes/4 heuristic (the heuristic is probably fine; label it).
 - How much of account-level connector state is visible from the CLI, versus only in the web UI.
