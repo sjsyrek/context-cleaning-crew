@@ -1,10 +1,11 @@
-"""Plugins that a built-in skill of current Claude Code may replace. Candidates; the reviewer decides."""
+"""Overlap: plugins a built-in skill may replace, and plugins installed from several marketplaces."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from .context import Context, load_data
+from .keeper import plugin_duplicates
 from .plugins import installed
 
 
@@ -18,6 +19,7 @@ def collect(ctx: Context) -> dict[str, Any]:
                 hits.append({"plugin": pid, "builtin": str(b["builtin"]), "note": str(b.get("note", ""))})
     return {
         "builtin": hits,
+        "plugin_duplicates": plugin_duplicates(sorted(installed(ctx)), ctx.options.options),
         "synced_skills": (
             "not visible in local files; compare the session's anthropic-skills:* list with plugins"
         ),

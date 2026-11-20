@@ -1,0 +1,4 @@
+{
+  "community-mkt": {"source": {"source": "github", "repo": "example/community"}, "installLocation": "~/.claude/plugins/marketplaces/community"},
+  "internal-mkt": {"source": {"source": "github", "repo": "example/internal"}, "installLocation": "~/.claude/plugins/marketplaces/internal"}
+}

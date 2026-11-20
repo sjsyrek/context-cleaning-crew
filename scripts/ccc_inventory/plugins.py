@@ -6,6 +6,7 @@ from typing import Any
 
 from .context import Context, read_json_object
 from .cost import plugin_cost
+from .keeper import is_protected
 from .settings import SettingsFile
 
 
@@ -37,6 +38,7 @@ def collect(ctx: Context, files: list[SettingsFile]) -> dict[str, Any]:
                 "versions": sorted({str(i.get("version", "")) for i in installs[pid] if isinstance(i, dict)}),
                 "enabled": enabled.get(pid, False),
                 "cost": plugin_cost(ctx, pid),
+                "protected": is_protected(pid, ctx.options.options),
             }
             for pid in sorted(installs)
         ],

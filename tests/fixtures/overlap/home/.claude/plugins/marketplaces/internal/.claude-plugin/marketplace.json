@@ -1,0 +1,1 @@
+{"name": "internal-mkt", "plugins": [{"name": "red-team", "version": "2.0.0", "source": "./plugins/red-team"}]}

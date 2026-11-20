@@ -11,6 +11,7 @@ from . import (
     facts,
     hooks,
     instructions,
+    keeper,
     mcp,
     memory,
     overlap,
@@ -48,6 +49,8 @@ def build_manifest(ctx: Context) -> dict[str, Any]:
     installed_names = plugins.plugin_names([p["id"] for p in plugin_section["installed"]])
     servers = mcp.server_names(ctx)
     rules = permissions.all_rules(ctx, files)
+    memory_section = memory.collect(ctx)
+    memory_files = [f"{d['path']}/{f['name']}" for d in memory_section["dirs"] for f in d["files"]]
     return {
         "schema_version": SCHEMA_VERSION,
         "live_setup": ctx.live,
@@ -60,7 +63,10 @@ def build_manifest(ctx: Context) -> dict[str, Any]:
         "usage": usage.collect(ctx),
         "instructions": instructions.collect(ctx, rules),
         "removed_tool_refs": removed_tools.collect(ctx),
-        "memory": memory.collect(ctx),
+        "memory": memory_section,
+        "protected": keeper.resolve_protected(
+            ctx, [p["id"] for p in plugin_section["installed"]], servers, memory_files
+        ),
         "facts": facts.collect(ctx),
         "marketplaces": drift.marketplace_summary(ctx),
         "drift": drift.collect(ctx, refreshed),

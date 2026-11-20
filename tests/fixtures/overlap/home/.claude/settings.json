@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "red-team@internal-mkt": true,
+    "red-team@community-mkt": true,
+    "docs-helper@community-mkt": true
+  }
+}
