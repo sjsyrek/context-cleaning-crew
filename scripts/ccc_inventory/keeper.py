@@ -37,6 +37,27 @@ def pick_keeper(candidates: Sequence[str], options: Options) -> tuple[str | None
     return None, UNDECIDED
 
 
+def pick_server_keeper(members: Sequence[dict[str, str]], options: Options) -> tuple[str | None, str]:
+    """Keeper among MCP servers with the same target. A member is protected by its own name or,
+    for a plugin's server, by its plugin; a plugin's marketplace counts for preferred_marketplaces."""
+    protected = sorted(
+        {
+            m["server"]
+            for m in members
+            if m["server"] in options.protected or (m.get("plugin") and is_protected(m["plugin"], options))
+        }
+    )
+    if len(protected) == 1:
+        return protected[0], "protected"
+    if len(protected) > 1:
+        return None, "protected: keep all"
+    for market in options.preferred_marketplaces:
+        for m in sorted(members, key=lambda m: m["server"]):
+            if m.get("plugin") and m["plugin"].partition("@")[2] == market:
+                return m["server"], "preferred_marketplaces"
+    return None, UNDECIDED
+
+
 def plugin_duplicates(ids: Sequence[str], options: Options) -> list[dict[str, Any]]:
     """Plugins with the same name installed from more than one marketplace."""
     by_name: dict[str, list[str]] = {}

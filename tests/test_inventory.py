@@ -345,7 +345,19 @@ class McpServersTest(unittest.TestCase):
     def test_servers_with_the_same_url_are_grouped_as_duplicates(self) -> None:
         dupes = manifest()["mcp"]["duplicates"]
         self.assertEqual(
-            dupes, [{"target": "https://api.example.invalid/mcp", "servers": ["github", "github-sse"]}]
+            dupes,
+            [
+                {
+                    "target": "https://api.example.invalid/mcp",
+                    "servers": ["github", "github-sse"],
+                    "members": [
+                        {"server": "github", "source": "~/.claude.json"},
+                        {"server": "github-sse", "source": "~/Code/proj/.mcp.json"},
+                    ],
+                    "keeper": None,
+                    "rule": "undecided: compare capability, then usage",
+                }
+            ],
         )
 
     def test_deprecated_sse_transport_is_flagged(self) -> None:
