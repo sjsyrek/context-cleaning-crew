@@ -85,6 +85,37 @@ class OptInTest(unittest.TestCase):
         )
 
 
+class TrustTest(unittest.TestCase):
+    """Only hooks Claude Code would run unprompted: user settings and enabled plugins."""
+
+    def setUp(self) -> None:
+        self.runner = canned()
+        self.found = hooks(True, self.runner)
+
+    def test_project_hooks_never_run(self) -> None:
+        hook = self.found[("SessionStart", "./project-hook.sh")]
+        self.assertEqual(hook["file"], "~/Code/app/.claude/settings.json")
+        self.assertEqual(
+            hook["dry_run"],
+            {"status": "not run: project hook; Claude Code runs it only in a trusted project"},
+        )
+        self.assertNotIn(("sh", "-c", "./project-hook.sh"), self.runner.calls)
+
+    def test_hooks_of_a_disabled_plugin_never_run(self) -> None:
+        hook = self.found[("SessionStart", '"${CLAUDE_PLUGIN_ROOT}/muted.sh"')]
+        self.assertEqual(hook["dry_run"], {"status": "not run: plugin not enabled"})
+
+
+class TimeoutTest(unittest.TestCase):
+    def test_a_hook_timeout_is_honored_but_capped(self) -> None:
+        from ccc_inventory.hooks import MAX_TIMEOUT_SECONDS, timeout_of
+
+        self.assertEqual(timeout_of({"timeout": 5}), 5.0)
+        self.assertEqual(timeout_of({"timeout": 600}), MAX_TIMEOUT_SECONDS)
+        self.assertEqual(timeout_of({}), MAX_TIMEOUT_SECONDS)
+        self.assertEqual(timeout_of({"timeout": True}), MAX_TIMEOUT_SECONDS)
+
+
 class DryRunResultTest(unittest.TestCase):
     def setUp(self) -> None:
         self.found = hooks(True, canned())
@@ -143,6 +174,31 @@ class RealSandboxTest(unittest.TestCase):
         )
         self.assertEqual(found[("SessionStart", PLUGIN_HOOK)]["dry_run"]["json"], "valid")
         self.assertEqual(found[("PreCompact", "~/.claude/hooks/writes.sh")]["dry_run"]["status"], "ok")
+
+
+@unittest.skipUnless(sys.platform == "darwin", "sandbox-exec is macOS only")
+class SandboxProfileTest(unittest.TestCase):
+    """No route out of the sandbox through other processes: launchd, LaunchServices, AppleEvents."""
+
+    def run_sandboxed(self, command: str) -> str:
+        with tempfile.TemporaryDirectory() as tmp:
+            argv = sandbox_argv(command, Path(tmp))
+            assert argv is not None
+            return SubprocessRunner(timeout_seconds=10).run(argv).stdout
+
+    def test_mach_services_are_unreachable(self) -> None:
+        # `defaults read` is read-only and goes through the preferences daemon over Mach.
+        probe = "defaults read -g AppleLocale >/dev/null 2>&1 && echo reachable || echo blocked"
+        self.assertEqual(self.run_sandboxed(probe), "blocked\n")
+
+    def test_the_profile_denies_launching_apps_and_sending_apple_events(self) -> None:
+        argv = sandbox_argv("true", Path("/nonexistent"))
+        assert argv is not None
+        for rule in ("(deny mach-lookup)", "(deny lsopen)", "(deny appleevent-send)", "(deny network*)"):
+            self.assertIn(rule, argv[2])
+
+    def test_ordinary_tools_still_work(self) -> None:
+        self.assertEqual(self.run_sandboxed("python3 -c 'print(6*7)'"), "42\n")
 
 
 class CommandLineTest(unittest.TestCase):

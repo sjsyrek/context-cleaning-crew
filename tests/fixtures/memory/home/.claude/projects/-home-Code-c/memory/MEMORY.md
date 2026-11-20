@@ -1,0 +1,3 @@
+- [x](deadline.md)
+- [x](MEMORY.md)
+- [x](small-commits.md)

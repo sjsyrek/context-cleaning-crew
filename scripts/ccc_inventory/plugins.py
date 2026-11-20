@@ -58,13 +58,19 @@ def multi_scope(ctx: Context, installs: dict[str, list[dict[str, Any]]]) -> list
     return found
 
 
-def collect(ctx: Context, files: list[SettingsFile]) -> dict[str, Any]:
-    installs = installed(ctx)
+def enabled_flags(files: list[SettingsFile]) -> dict[str, bool]:
+    """`enabledPlugins` merged in load order: a later settings file wins."""
     enabled: dict[str, bool] = {}
     for f in files:
         flags = f.data.get("enabledPlugins")
         if isinstance(flags, dict):
             enabled.update({k: bool(v) for k, v in flags.items()})
+    return enabled
+
+
+def collect(ctx: Context, files: list[SettingsFile]) -> dict[str, Any]:
+    installs = installed(ctx)
+    enabled = enabled_flags(files)
     return {
         "installed": [
             {

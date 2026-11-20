@@ -1,0 +1,2 @@
+- [x](commit-style.md)
+- [x](MEMORY.md)
