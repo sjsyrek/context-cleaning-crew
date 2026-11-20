@@ -4,9 +4,21 @@ Apply only approved items. These rules come from a manual cleanup where each one
 
 ## Order (partial failure stays safe)
 
-1. **Back up** every file you will touch to `<backup_dir>/<yyyy-mm-dd-hhmm>/`, mirroring paths under `~`. `<backup_dir>` is the manifest's `options.values.backup_dir` (default `~/.claude/backups/context-cleaning-crew/`) — persistent, never a temp or scratch directory (a wiped scratch directory once lost the only backup). Snapshot `enabledPlugins` from every settings file.
+1. **Back up** every file you will touch to `<backup_dir>/<yyyy-mm-dd-hhmm>/`, mirroring paths under `~`. `<backup_dir>` is the manifest's `options.values.backup_dir` (default `~/.claude/backups/context-cleaning-crew/`) — persistent, never a temp or scratch directory (a wiped scratch directory once lost the only backup). Use the helper, which refuses a temporary directory, never overwrites a backup, and snapshots `enabledPlugins` from every settings file it copies:
+
+   ```sh
+   python3 "${CLAUDE_SKILL_DIR}/../../scripts/executor.py" backup --backup-dir <backup_dir> <every file you will touch, including each settings file>
+   ```
+
+   It prints the backup directory and the snapshot path. If it refuses, stop and tell the user why.
 2. Settings edits (permissions, env, hooks).
-3. Plugin uninstalls (`claude plugin uninstall`), then restore any `enabledPlugins` entry the uninstall removed but the plan keeps (see scope aliasing).
+3. Plugin uninstalls (`claude plugin uninstall`), then restore any `enabledPlugins` entry the uninstall removed but the plan keeps (see scope aliasing), from the snapshot:
+
+   ```sh
+   python3 "${CLAUDE_SKILL_DIR}/../../scripts/executor.py" restore-flags --settings <settings file> --snapshot <snapshot> --keep <plugin ids the plan keeps>
+   ```
+
+   It touches no other entry and leaves the file alone when nothing is missing.
 4. Marketplace removals (`claude plugin marketplace remove`).
 5. MCP changes (`claude mcp remove/add`).
 6. Instruction-file edits and `move` extractions (write the new skill first, then trim the source).
