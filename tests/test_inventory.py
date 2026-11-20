@@ -377,6 +377,23 @@ class FreeTextPathTest(unittest.TestCase):
         self.assertEqual(ctx.redact(text), '"~/.config/tool" run --dir=~')
 
 
+class RealHomeInAnotherAuditTest(unittest.TestCase):
+    """Auditing a backup or copy: the running user's own home path is personal data too."""
+
+    def setUp(self) -> None:
+        self.ctx = Context(home=FIXTURE_HOME, cwd=FIXTURE_CWD, runner=FakeRunner({}), live=False)
+        self.real = Path.home()
+
+    def test_the_real_home_in_free_text_becomes_tilde(self) -> None:
+        self.assertEqual(self.ctx.redact(f'"{self.real}/.config/tool" hook'), '"~/.config/tool" hook')
+
+    def test_a_path_under_the_real_home_displays_with_tilde(self) -> None:
+        self.assertEqual(self.ctx.display(self.real / ".config" / "tool"), "~/.config/tool")
+
+    def test_the_audited_home_still_wins_for_its_own_paths(self) -> None:
+        self.assertEqual(self.ctx.display(FIXTURE_HOME / ".claude"), "~/.claude")
+
+
 def tree_digest(root: Path) -> dict[str, str]:
     import hashlib
 

@@ -42,17 +42,25 @@ class Context:
     def redact(self, text: str) -> str:
         """Every free-text manifest field goes through this: no secret value, no absolute home path."""
         text = redact(text, self.secret_patterns)
-        for home in sorted({str(self.home.resolve()), str(self.home)}, key=len, reverse=True):
+        for home in sorted(self.homes(), key=len, reverse=True):
             text = re.sub(re.escape(home) + r"(?=/|\b|$|[\s\"'=])", "~", text)
         return text
 
+    def homes(self) -> set[str]:
+        """The audited home and, when auditing a backup or copy, the running user's own home:
+        both become `~`, so no manifest carries an absolute home path."""
+        return {str(self.home.resolve()), str(self.home), str(Path.home()), str(Path.home().resolve())}
+
     def display(self, path: Path) -> str:
         """Render a path relative to home as `~/...` so manifests are portable and diffable."""
-        try:
-            rel = path.resolve().relative_to(self.home.resolve())
-        except ValueError:
-            return str(path)
-        return "~" if str(rel) == "." else "~/" + rel.as_posix()
+        resolved = path.resolve()
+        for home in (self.home.resolve(), Path.home().resolve()):  # the audited home wins
+            try:
+                rel = resolved.relative_to(home)
+            except ValueError:
+                continue
+            return "~" if str(rel) == "." else "~/" + rel.as_posix()
+        return str(path)
 
     def cwd_ancestry(self) -> list[Path]:
         """Directories from the top of the load path down to cwd.
