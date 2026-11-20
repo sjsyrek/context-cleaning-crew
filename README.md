@@ -45,6 +45,7 @@ Set with `claude plugin configure context-cleaning-crew` (or `/plugin` → manag
 
 - Claude Code 2.1.326 or later.
 - Python 3.9+ (the stock macOS `python3` works). The scripts use only the standard library.
+- `python3` must be on `PATH`: the skill and the SessionStart update hook call it by that name, not by an absolute path.
 - No environment variables are required.
 
 ## Development

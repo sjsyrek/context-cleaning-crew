@@ -34,6 +34,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- **README states that `python3` must be on `PATH`**, since the skill and the SessionStart hook call it by name.
 - **`PLAN.md` defines when step 8 (dogfooding) is done**: a table mapping each finding of the 2026-11-17 manual cleanup to the audit finding that catches it on a rebuild of the pre-cleanup setup (script, reviewer checklist, or not rebuildable from the backup), produced by a report run on a copy.
 - **MCP servers whose URLs differ only in their query string now group as duplicates.** The grouping key is the masked target (see Security), so `https://host/v1?api_key=A` and `https://host/v1?api_key=B` are one `mcp.duplicates` group with target `https://host/v1?<redacted:query>`.
 - **Memory duplicate grouping is plain dictionary lookups.** `memory.duplicates` groups personal memories by `name:` and by normalized body and merges groups that share a file, instead of comparing every pair through a union-find. The output is unchanged, including chains (a matches b by body, b matches c by name: one group).
