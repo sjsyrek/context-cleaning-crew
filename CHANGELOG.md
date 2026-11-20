@@ -31,7 +31,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
-- **The skill and seats take options from the manifest.** The inventory runs with `--mode <mode> --save`, so the mode's refresh and tracker rules and the `report_dir` option are applied by the script rather than restated in the skill. Seats read `options.values` and `protected` from the manifest instead of from the coordinator's prompt. Full mode passes `full_mode_models` as the Agent tool's `model` parameter on every seat spawn (omitted for `inherit`), so the option decides instead of the agent files' frontmatter. The executor backs up to the `backup_dir` option and never touches a protected item, and the report lists ignored option values and protected entries that match nothing. Auditing another setup always runs the inventory in report mode.
+- **The skill and seats take options from the manifest.** The inventory runs with `--mode <mode> --save`, so the mode's refresh and tracker rules and the `report_dir` option are applied by the script rather than restated in the skill. Seats read `options.values` and `protected` from the manifest instead of from the coordinator's prompt. Full mode passes `full_mode_models` as the Agent tool's `model` parameter on every seat spawn (omitted for `inherit`), so the option decides instead of the agent files' frontmatter. Eval `04-full-mode` checks it with a new `seats-model` grader. The executor backs up to the `backup_dir` option and never touches a protected item, and the report lists ignored option values and protected entries that match nothing. Auditing another setup always runs the inventory in report mode.
 
 ### Fixed
 
