@@ -60,7 +60,7 @@ def sources(ctx: Context, files: list[SettingsFile]) -> list[Source]:
         )
         for f in files
     ]
-    enabled = enabled_flags(files)
+    enabled = enabled_flags([f for f in files if f.scope.startswith("user")])  # never a project file
     for pid, installs in sorted(installed(ctx).items()):
         roots = sorted({str(i["installPath"]) for i in installs if isinstance(i.get("installPath"), str)})
         for raw in roots[:1]:  # every scope of one plugin shares its install

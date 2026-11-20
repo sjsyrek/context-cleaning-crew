@@ -102,6 +102,7 @@ class TrustTest(unittest.TestCase):
         self.assertNotIn(("sh", "-c", "./project-hook.sh"), self.runner.calls)
 
     def test_hooks_of_a_disabled_plugin_never_run(self) -> None:
+        # The project's settings enable it, but a project file can't vouch for code to run.
         hook = self.found[("SessionStart", '"${CLAUDE_PLUGIN_ROOT}/muted.sh"')]
         self.assertEqual(hook["dry_run"], {"status": "not run: plugin not enabled"})
 
