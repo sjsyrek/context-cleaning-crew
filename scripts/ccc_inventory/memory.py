@@ -1,4 +1,7 @@
-"""Auto-memory directories: files, broken index links, and memory that reads as global."""
+"""Auto-memory directories: files, scope, broken index links, duplicates and stray directories.
+
+Whether a memory reads as global is the reviewer's call, not a regex's.
+"""
 
 from __future__ import annotations
 
@@ -11,11 +14,6 @@ from .plugins import expand
 
 LINK = re.compile(r"\]\(([^)\s]+\.md)\)")
 TYPE = re.compile(r"^\s*type:\s*(\w+)", re.MULTILINE)
-GLOBAL_WORDING = re.compile(
-    r"\b(?:every|all|any)\s+projects?\b|\beverywhere\b|\bglobal(?:ly)?\b"
-    r"|\bacross (?:all )?(?:repos|projects)\b",
-    re.IGNORECASE,
-)
 PERSONAL_TYPES = ("user", "feedback")
 
 
@@ -26,14 +24,11 @@ def memory_type(text: str) -> str:
 
 def collect_dir(ctx: Context, directory: Path) -> dict[str, Any]:
     files: list[dict[str, Any]] = []
-    global_looking: list[str] = []
     for path in sorted(directory.glob("*.md")):
         text = read_text(path) or ""
         size = len(text.encode("utf-8"))
         kind = memory_type(text)
         files.append({"name": path.name, "bytes": size, "approx_tokens": approx_tokens(size), "type": kind})
-        if path.name != "MEMORY.md" and kind in PERSONAL_TYPES and GLOBAL_WORDING.search(text):
-            global_looking.append(path.name)
     index = read_text(directory / "MEMORY.md") or ""
     broken = sorted({link for link in LINK.findall(index) if not (directory / link).is_file()})
     index_lines = [line for line in index.splitlines() if line.strip()]
@@ -44,7 +39,6 @@ def collect_dir(ctx: Context, directory: Path) -> dict[str, Any]:
         "index_lines": len(index_lines),
         "longest_index_line": max((len(line) for line in index_lines), default=0),
         "broken_links": broken,
-        "global_looking": global_looking,
     }
 
 
@@ -126,14 +120,15 @@ def duplicates(ctx: Context, dirs: list[Path]) -> list[dict[str, Any]]:
     return sorted(found, key=lambda g: g["files"])
 
 
-def project_paths(ctx: Context) -> list[Path]:
-    """Working trees Claude Code has seen (`projects` in ~/.claude.json), plus the cwd's ancestry."""
+def seen_projects(ctx: Context) -> list[Path]:
+    """Working trees Claude Code has been used in (`projects` in ~/.claude.json)."""
     seen = read_json_object(ctx.home / ".claude.json").get("projects")
-    paths = {p for p in ctx.cwd_ancestry()}
-    for key in seen if isinstance(seen, dict) else []:
-        if isinstance(key, str):
-            paths.add(expand(ctx, key))
-    return sorted(paths)
+    return sorted({expand(ctx, k) for k in (seen if isinstance(seen, dict) else []) if isinstance(k, str)})
+
+
+def project_paths(ctx: Context) -> list[Path]:
+    """Known working trees plus the cwd's ancestry."""
+    return sorted({*ctx.cwd_ancestry(), *seen_projects(ctx)})
 
 
 def stray_dirs(ctx: Context) -> list[dict[str, Any]]:

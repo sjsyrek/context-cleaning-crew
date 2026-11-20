@@ -115,10 +115,9 @@ class InstructionFilesTest(unittest.TestCase):
     def test_home_directory_claude_md_is_flagged_as_de_facto_global(self) -> None:
         self.assertEqual(self.instructions["home_dir_global"], ["~/CLAUDE.md"])
 
-    def test_directives_are_extracted_with_location(self) -> None:
-        texts = {(d["path"], d["text"]) for d in self.instructions["directives"]}
-        self.assertIn(("~/.claude/CLAUDE.md", "Always git push after every commit."), texts)
-        self.assertIn(("~/Code/AGENTS.md", "Push only when asked."), texts)
+    def test_instruction_lines_are_left_to_the_reviewer(self) -> None:
+        # Whether "Always git push" contradicts "Push only when asked" is judgment: no keyword list.
+        self.assertNotIn("directives", self.instructions)
 
     def test_instruction_contradicting_a_deny_rule_is_flagged(self) -> None:
         conflicts = self.instructions["deny_conflicts"]
@@ -172,9 +171,14 @@ class MemoryTest(unittest.TestCase):
     def test_index_links_to_missing_files_are_reported(self) -> None:
         self.assertEqual(self.dirs[0]["broken_links"], ["missing-file.md"])
 
-    def test_memory_that_reads_as_global_is_flagged_with_its_scope(self) -> None:
+    def test_memory_is_recorded_with_its_scope_and_wording_left_to_the_reviewer(self) -> None:
         self.assertEqual(self.dirs[0]["project_dir"], "-home-Code-proj")
-        self.assertEqual(self.dirs[0]["global_looking"], ["prefers-terse.md"])
+        self.assertNotIn("global_looking", self.dirs[0])
+
+
+class ProjectsTest(unittest.TestCase):
+    def test_no_projects_entry_means_no_known_projects(self) -> None:
+        self.assertEqual(manifest()["projects"], [])
 
 
 class StabilityTest(unittest.TestCase):

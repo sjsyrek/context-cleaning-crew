@@ -1,4 +1,7 @@
-"""CLAUDE.md and AGENTS.md files in the load path: size, directives, conflicts, move candidates."""
+"""CLAUDE.md and AGENTS.md files in the load path: size, deny-rule conflicts and long procedures.
+
+What the text means (contradictions, one-off task procedures) is the reviewer's call, not a regex's.
+"""
 
 from __future__ import annotations
 
@@ -11,17 +14,8 @@ from .context import Context, approx_tokens, read_text
 from .permissions import Rule
 
 NAMES = ("CLAUDE.md", ".claude/CLAUDE.md", "CLAUDE.local.md", "AGENTS.md")
-DIRECTIVE = re.compile(r"\b(always|never|must|only|don't|do not|avoid|prefer|use)\b", re.IGNORECASE)
-LIST_MARKER = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+")
 ORDERED_STEP = re.compile(r"^\s*\d+[.)]\s+")
 MOVE_MIN_STEPS = 5
-TASK_MIN_STEPS = 3
-# A heading that names a one-off task, not a standing rule: its steps are needed only when doing it.
-TASK_HEADING = re.compile(
-    r"\b(?:when|before|after|checklist|procedure|how to|release|releasing|deploy\w*|publish\w*"
-    r"|pull requests?|merge requests?|onboarding|set ?up|migrat\w+|cutting)\b",
-    re.IGNORECASE,
-)
 
 
 def load_path(ctx: Context) -> list[Path]:
@@ -47,15 +41,6 @@ def prose_lines(text: str) -> Iterator[tuple[int, str]]:
             continue
         if not fenced:
             yield number, line
-
-
-def directives(ctx: Context, display: str, text: str) -> list[dict[str, Any]]:
-    found: list[dict[str, Any]] = []
-    for number, line in prose_lines(text):
-        stripped = LIST_MARKER.sub("", line).strip()
-        if stripped and not stripped.startswith("#") and DIRECTIVE.search(stripped):
-            found.append({"path": display, "line": number, "text": ctx.redact(stripped)})
-    return found
 
 
 def deny_command(rule: Rule) -> str:
@@ -87,22 +72,16 @@ def deny_conflicts(ctx: Context, display: str, text: str, denies: list[Rule]) ->
 
 
 def move_candidates(ctx: Context, display: str, text: str) -> list[dict[str, Any]]:
-    """Sections that are mostly an ordered procedure: cheaper as an on-demand skill."""
+    """Sections with five or more ordered steps: cheaper as an on-demand skill."""
     found: list[dict[str, Any]] = []
     heading = ""
     start = 0
     steps = 0
 
     def close() -> None:
-        if not heading:
-            return
-        if steps >= MOVE_MIN_STEPS:
+        if heading and steps >= MOVE_MIN_STEPS:
             why = f"{steps} ordered steps"
-        elif steps >= TASK_MIN_STEPS and TASK_HEADING.search(heading):
-            why = f"task heading, {steps} steps"
-        else:
-            return
-        found.append({"path": display, "line": start, "heading": heading, "steps": steps, "why": why})
+            found.append({"path": display, "line": start, "heading": heading, "steps": steps, "why": why})
 
     for number, line in prose_lines(text):
         if re.match(r"^#{2,6}\s", line):
@@ -117,7 +96,6 @@ def move_candidates(ctx: Context, display: str, text: str) -> list[dict[str, Any
 def collect(ctx: Context, rules: list[Rule]) -> dict[str, Any]:
     denies = [r for r in rules if r.list_name == "deny"]
     files: list[dict[str, Any]] = []
-    all_directives: list[dict[str, Any]] = []
     conflicts: list[dict[str, Any]] = []
     moves: list[dict[str, Any]] = []
     for path in load_path(ctx):
@@ -127,7 +105,6 @@ def collect(ctx: Context, rules: list[Rule]) -> dict[str, Any]:
         files.append(
             {"path": display, "name": path.name, "bytes": size, "approx_tokens": approx_tokens(size)}
         )
-        all_directives.extend(directives(ctx, display, text))
         conflicts.extend(deny_conflicts(ctx, display, text, denies))
         moves.extend(move_candidates(ctx, display, text))
     home_file = ctx.home / "CLAUDE.md"
@@ -136,7 +113,6 @@ def collect(ctx: Context, rules: list[Rule]) -> dict[str, Any]:
         "files": files,
         "token_estimate": "bytes/4 heuristic",
         "home_dir_global": [ctx.display(home_file)] if in_home and home_file.is_file() else [],
-        "directives": all_directives,
         "deny_conflicts": conflicts,
         "move_candidates": moves,
     }

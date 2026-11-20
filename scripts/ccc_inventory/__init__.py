@@ -64,6 +64,7 @@ def build_manifest(ctx: Context) -> dict[str, Any]:
         "instructions": instructions.collect(ctx, rules),
         "removed_tool_refs": removed_tools.collect(ctx),
         "memory": memory_section,
+        "projects": [ctx.display(p) for p in memory.seen_projects(ctx)],
         "protected": keeper.resolve_protected(
             ctx, [p["id"] for p in plugin_section["installed"]], servers, memory_files
         ),

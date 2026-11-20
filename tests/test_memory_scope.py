@@ -24,6 +24,12 @@ def memory() -> dict[str, Any]:
     return section
 
 
+class ProjectsTest(unittest.TestCase):
+    def test_the_projects_claude_code_has_seen_are_listed(self) -> None:
+        ctx = Context(home=HOME, cwd=HOME / "Code" / "b", runner=FakeRunner({}))
+        self.assertEqual(build_manifest(ctx)["projects"], ["~/Code/a", "~/Code/b"])
+
+
 class StrayDirsTest(unittest.TestCase):
     def test_a_project_claude_memory_dir_is_reported_as_never_loaded(self) -> None:
         self.assertEqual(memory()["stray_dirs"], [{"path": "~/Code/a/.claude/memory", "files": 1}])
