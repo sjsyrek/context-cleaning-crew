@@ -1,0 +1,1 @@
+{"type": "assistant", "timestamp": "2026-11-10T10:00:00.000Z", "message": {"content": [{"type": "tool_use", "name": "mcp__plugin_docs_search__lookup", "input": {}}]}}

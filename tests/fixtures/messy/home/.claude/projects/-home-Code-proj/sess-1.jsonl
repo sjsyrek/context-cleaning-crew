@@ -1,0 +1,7 @@
+{"type": "assistant", "timestamp": "2026-11-01T10:00:00.000Z", "message": {"content": [{"type": "tool_use", "name": "mcp__github__search", "input": {"q": "SECRET-CONTENT-NEVER-COPIED"}}]}}
+{"type": "assistant", "timestamp": "2026-10-15T10:00:00.000Z", "message": {"content": [{"type": "tool_use", "name": "mcp__github__get_issue", "input": {"n": 1}}]}}
+{"type": "assistant", "timestamp": "2025-01-01T10:00:00.000Z", "message": {"content": [{"type": "tool_use", "name": "mcp__github-sse__search", "input": {}}]}}
+{"type": "assistant", "timestamp": "2026-11-02T10:00:00.000Z", "message": {"content": [{"type": "tool_use", "name": "Bash", "input": {"command": "ls"}}]}}
+{"type": "user", "timestamp": "2026-11-03T10:00:00.000Z", "message": {"content": "tools available: mcp__ghost__search"}}
+{not json mcp__ tool_use
+{"type":"assistant","timestamp":"2025-02-01T00:00:00Z","message":{"content":["a plain string block",{"type":"tool_use","name":"mcp__github-sse__search","input":{}}]}}

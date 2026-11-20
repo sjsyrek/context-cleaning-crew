@@ -336,7 +336,8 @@ class SkillUsageTest(unittest.TestCase):
     def test_usage_counts_and_last_used_dates_are_recorded(self) -> None:
         usage = {u["skill"]: u for u in manifest()["usage"]["skills"]}
         self.assertEqual(
-            usage["old-council"], {"skill": "old-council", "count": 3, "last_used": "2023-11-14"}
+            usage["old-council"],
+            {"skill": "old-council", "count": 3, "last_used": "2023-11-14", "unused": True},
         )
 
 

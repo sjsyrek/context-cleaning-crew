@@ -7,6 +7,7 @@ import re
 import shutil
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,7 @@ class Context:
     which: Callable[[str], str | None] = shutil.which  # looks a tool up on PATH; never runs it
     live: bool = True  # home is the running user's: `claude plugin ...` and CLI probes describe it
     options: LoadedOptions = field(default_factory=lambda: load_options([]))  # defaults unless given
+    today: date = field(default_factory=date.today)  # the usage window ends here
 
     NOT_LIVE = "not checked: not the live setup"
 
