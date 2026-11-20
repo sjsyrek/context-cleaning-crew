@@ -105,7 +105,10 @@ def read_object(path: Path) -> dict[str, Any]:
 def restore_flags(home: Path, settings: Path, snapshot: Path, keep: Sequence[str]) -> list[str]:
     """Re-add the snapshot's enabledPlugins entries for `keep` that are now missing or changed in
     `settings`. Parses and re-serializes only when something changes, then re-reads to validate."""
-    before = read_object(snapshot).get(display(home, settings), {})
+    key = display(home, settings)
+    before = read_object(snapshot).get(key)
+    if not isinstance(before, dict):  # `{}` is legal: the file had no flags when backed up
+        raise ValueError(f"{snapshot} has no enabledPlugins snapshot for {key}; back that file up first")
     data: Any = {}
     if settings.exists():
         try:

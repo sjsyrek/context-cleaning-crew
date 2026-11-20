@@ -98,6 +98,25 @@ class ScopeAliasingReplayTest(unittest.TestCase):
                 restore_flags(self.home, self.settings, snapshot, ["red-team@community-mkt"])
             self.assertEqual(self.settings.read_text(), broken)
 
+    def test_a_snapshot_without_this_settings_file_is_refused(self) -> None:
+        # A snapshot of another file says nothing about this one: never guess "no flags".
+        local = self.home / ".claude" / "settings.local.json"
+        local.write_text('{"enabledPlugins": {}}\n')
+        dest = backup(self.home, [local], self.backups, STAMP, temp_roots=())
+        self.simulate_uninstall("red-team@community-mkt")
+        after = self.settings.read_bytes()
+        with self.assertRaises(ValueError) as caught:
+            restore_flags(self.home, self.settings, dest / "enabledPlugins.json", ["red-team@community-mkt"])
+        self.assertIn("~/.claude/settings.json", str(caught.exception))
+        self.assertEqual(self.settings.read_bytes(), after)
+
+    def test_a_snapshot_with_no_flags_for_this_file_restores_nothing(self) -> None:
+        self.settings.write_text('{"model": "opus"}\n')
+        dest = backup(self.home, [self.settings], self.backups, STAMP, temp_roots=())
+        self.assertEqual(read(dest / "enabledPlugins.json"), {"~/.claude/settings.json": {}})
+        snapshot = dest / "enabledPlugins.json"
+        self.assertEqual(restore_flags(self.home, self.settings, snapshot, ["red-team@community-mkt"]), [])
+
     def test_an_existing_backup_is_never_overwritten(self) -> None:
         backup(self.home, [self.settings], self.backups, STAMP, temp_roots=())
         with self.assertRaises(BackupError):
