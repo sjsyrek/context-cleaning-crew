@@ -6,10 +6,11 @@ import json
 import re
 import shutil
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from .options import LoadedOptions, load_options
 from .redact import Pattern, redact
 from .runner import Runner
 
@@ -26,6 +27,7 @@ class Context:
     run_trackers: bool = False  # runs tracker CLIs (e.g. `bd stats`) in the working tree
     which: Callable[[str], str | None] = shutil.which  # looks a tool up on PATH; never runs it
     live: bool = True  # home is the running user's: `claude plugin ...` and CLI probes describe it
+    options: LoadedOptions = field(default_factory=lambda: load_options([]))  # defaults unless given
 
     NOT_LIVE = "not checked: not the live setup"
 

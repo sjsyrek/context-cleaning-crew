@@ -9,5 +9,78 @@
   "homepage": "https://github.com/sjsyrek/context-cleaning-crew",
   "repository": "https://github.com/sjsyrek/context-cleaning-crew",
   "license": "MIT",
-  "keywords": ["config", "audit", "context", "cleanup", "skill"]
+  "keywords": [
+    "config",
+    "audit",
+    "context",
+    "cleanup",
+    "skill"
+  ],
+  "userConfig": {
+    "preferred_marketplaces": {
+      "type": "string",
+      "multiple": true,
+      "title": "Preferred marketplaces",
+      "description": "Marketplace names in order of preference. When two installed plugins do the same job, the review keeps the one from the earliest marketplace in this list. Empty means decide by capability, then usage.",
+      "default": []
+    },
+    "protected": {
+      "type": "string",
+      "multiple": true,
+      "title": "Protected items",
+      "description": "Plugins (name or name@marketplace), MCP server names or memory file names that are never proposed for removal.",
+      "default": []
+    },
+    "backup_dir": {
+      "type": "string",
+      "title": "Backup directory",
+      "description": "Where every file is backed up before a change. Must be persistent: never a temporary or scratch directory.",
+      "default": "~/.claude/backups/context-cleaning-crew/"
+    },
+    "report_dir": {
+      "type": "string",
+      "title": "Report directory",
+      "description": "Where manifests and dated reports are written.",
+      "default": "~/.claude/context-cleaning-crew/reports/"
+    },
+    "usage_window_days": {
+      "type": "number",
+      "title": "Usage window (days)",
+      "description": "A skill or MCP server not used within this many days counts as unused.",
+      "default": 90,
+      "min": 1,
+      "max": 3650
+    },
+    "mine_transcripts": {
+      "type": "boolean",
+      "title": "Count MCP usage from transcripts",
+      "description": "Read your local session transcripts to count MCP tool calls per server within the usage window. Counts only; no content is kept. Off by default.",
+      "default": false
+    },
+    "refresh_marketplaces": {
+      "type": "boolean",
+      "title": "Refresh marketplaces in report mode",
+      "description": "Update the local marketplace clones before comparing plugin versions, in report mode too. Quick and full mode always refresh. Off means report mode compares against the cached clones and says so.",
+      "default": true
+    },
+    "extra_secret_patterns": {
+      "type": "string",
+      "multiple": true,
+      "title": "Extra secret patterns",
+      "description": "Additional regular expressions (Python syntax) for token formats the built-in scan doesn't know, such as an internal API key prefix. Matches are reported by file, key and type, never by value.",
+      "default": []
+    },
+    "full_mode_models": {
+      "type": "string",
+      "title": "Full-mode seat model",
+      "description": "Model for the five full-mode reviewer seats. inherit uses the session's model. The synthesis always runs in your own session.",
+      "default": "sonnet",
+      "options": [
+        "sonnet",
+        "opus",
+        "haiku",
+        "inherit"
+      ]
+    }
+  }
 }

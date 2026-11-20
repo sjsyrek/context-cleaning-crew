@@ -25,6 +25,22 @@ After a Claude Code update, a SessionStart hook suggests a report run once. On e
 
 Reports go to `~/.claude/context-cleaning-crew/reports/`; backups of anything changed go to `~/.claude/backups/context-cleaning-crew/`.
 
+## Options
+
+Set with `claude plugin configure context-cleaning-crew` (or `/plugin` → manage). Claude Code stores them under `pluginConfigs` in your user settings; the inventory reads them from there and records the effective values, and where each came from, in the manifest.
+
+| Option | Default | What it does |
+|---|---|---|
+| `preferred_marketplaces` | none | Marketplaces in order of preference; when two plugins do the same job, keep the one from the earliest listed |
+| `protected` | none | Plugins, MCP servers or memory files never proposed for removal |
+| `backup_dir` | `~/.claude/backups/context-cleaning-crew/` | Backups before any change; keep it persistent |
+| `report_dir` | `~/.claude/context-cleaning-crew/reports/` | Manifests and reports |
+| `usage_window_days` | `90` | Not used within this many days counts as unused |
+| `mine_transcripts` | off | Count MCP tool calls per server from local transcripts (counts only) |
+| `refresh_marketplaces` | on | Refresh marketplace clones in report mode too (quick and full always do) |
+| `extra_secret_patterns` | none | Extra regexes for the secrets scan |
+| `full_mode_models` | `sonnet` | Model for the five full-mode seats (`sonnet`, `opus`, `haiku`, `inherit`) |
+
 ## Requirements
 
 - Claude Code 2.1.326 or later.
