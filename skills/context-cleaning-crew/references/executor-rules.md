@@ -17,7 +17,7 @@ Apply only approved items. These rules come from a manual cleanup where each one
 
 - **Never touch a protected item** (manifest `protected`), even under `go`; if a plan line targets one, skip it and say why.
 - **Prefer the CLI** (`claude plugin …`, `claude mcp …`) over editing JSON. When JSON must be edited, parse and re-serialize, validate, and diff against the backup.
-- **Scope aliasing:** when the working directory is the home directory, `~/.claude/settings.json` is both user and project settings. Uninstalling a project-scope copy can delete the user-scope copy's enable flag. Compare `enabledPlugins` with the snapshot after every uninstall and restore only the intended entries.
+- **Scope aliasing:** when the manifest's `settings.scope_aliasing.aliased` is true, or a `plugins.multi_scope` entry has `shares_user_settings` (a project install for the home directory), `~/.claude/settings.json` is both user and project settings. Uninstalling a project-scope copy can delete the user-scope copy's enable flag. Compare `enabledPlugins` with the snapshot after every uninstall and restore only the intended entries.
 - **Uninstalling deletes the enable flag** — expected for removals, a surprise for duplicates.
 - **"Keep" a disabled plugin usually means enable it.** Ask when ambiguous.
 - **Verify memory before rewriting it.** Check each concrete claim cheaply (does the remote exist, is the tool installed, at what version); write current facts with absolute dates; keep decisions, drop narrative.

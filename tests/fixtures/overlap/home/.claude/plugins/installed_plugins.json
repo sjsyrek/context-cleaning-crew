@@ -1,5 +1,11 @@
 {"version": 2, "plugins": {
   "red-team@internal-mkt": [{"scope": "user", "installPath": "/nonexistent/rt-internal", "version": "2.0.0"}],
-  "red-team@community-mkt": [{"scope": "user", "installPath": "/nonexistent/rt-community", "version": "1.1.0"}],
-  "docs-helper@community-mkt": [{"scope": "user", "installPath": "/nonexistent/docs-helper", "version": "0.3.0"}]
+  "red-team@community-mkt": [
+    {"scope": "user", "installPath": "/nonexistent/rt-community", "version": "1.1.0"},
+    {"scope": "project", "projectPath": "~", "installPath": "/nonexistent/rt-community", "version": "1.1.0"}
+  ],
+  "docs-helper@community-mkt": [
+    {"scope": "user", "installPath": "~/.claude/plugins/cache/community-mkt/docs-helper/0.3.0", "version": "0.3.0"},
+    {"scope": "project", "projectPath": "~/Code/app", "installPath": "~/.claude/plugins/cache/community-mkt/docs-helper/0.3.0", "version": "0.3.0"}
+  ]
 }}

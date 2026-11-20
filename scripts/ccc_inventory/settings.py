@@ -38,6 +38,19 @@ def settings_files(ctx: Context) -> list[SettingsFile]:
     return found
 
 
+ALIASING_NOTE = (
+    "cwd is the home directory, so ~/.claude/settings.json is both user and project settings: "
+    "uninstalling a project-scope copy can delete the user-scope copy's enabledPlugins flag. "
+    "Snapshot enabledPlugins before any uninstall and restore only the intended entries."
+)
+
+
+def scope_aliasing(ctx: Context) -> dict[str, Any]:
+    if ctx.cwd.resolve() != ctx.home.resolve():
+        return {"aliased": False}
+    return {"aliased": True, "file": ctx.display(ctx.claude_dir / "settings.json"), "note": ALIASING_NOTE}
+
+
 def collect(ctx: Context, files: list[SettingsFile]) -> dict[str, Any]:
     reasoning_env: list[dict[str, str]] = []
     model: dict[str, str] = {}
@@ -54,6 +67,7 @@ def collect(ctx: Context, files: list[SettingsFile]) -> dict[str, Any]:
                 model[key] = f.data[key]
     return {
         "files": [{"path": ctx.display(f.path), "scope": f.scope} for f in files],
+        "scope_aliasing": scope_aliasing(ctx),
         "reasoning_env": reasoning_env,
         "selected": model,
     }
