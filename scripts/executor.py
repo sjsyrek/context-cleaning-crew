@@ -8,7 +8,7 @@
   restore-flags  after an uninstall, put back the enabledPlugins entries of plugins the plan
                  keeps, from the snapshot, without touching any other entry.
 
-Standard library only. Prints JSON; exits 2 on a refused backup.
+Standard library only. Prints JSON; exits 2 on a refused backup or restore.
 """
 
 from __future__ import annotations
@@ -29,6 +29,10 @@ SNAPSHOT = "enabledPlugins.json"
 
 class BackupError(Exception):
     pass
+
+
+class RestoreError(ValueError):
+    """restore-flags refused to touch a file; the CLI exits 2."""
 
 
 def system_temp_roots() -> tuple[Path, ...]:
@@ -105,10 +109,12 @@ def read_object(path: Path) -> dict[str, Any]:
 def restore_flags(home: Path, settings: Path, snapshot: Path, keep: Sequence[str]) -> list[str]:
     """Re-add the snapshot's enabledPlugins entries for `keep` that are now missing or changed in
     `settings`. Parses and re-serializes only when something changes, then re-reads to validate."""
+    if not is_under(settings.resolve(), home.resolve()):  # resolve(): a symlink out of home counts
+        raise RestoreError(f"{settings} is outside {home}; restore-flags edits only settings under home")
     key = display(home, settings)
     before = read_object(snapshot).get(key)
     if not isinstance(before, dict):  # `{}` is legal: the file had no flags when backed up
-        raise ValueError(f"{snapshot} has no enabledPlugins snapshot for {key}; back that file up first")
+        raise RestoreError(f"{snapshot} has no enabledPlugins snapshot for {key}; back that file up first")
     data: Any = {}
     if settings.exists():
         try:
@@ -116,7 +122,7 @@ def restore_flags(home: Path, settings: Path, snapshot: Path, keep: Sequence[str
         except (OSError, ValueError):
             data = None
     if not isinstance(data, dict):  # `{}` is a valid, empty settings file
-        raise ValueError(f"{settings} is not a JSON object; restore it from the backup by hand")
+        raise RestoreError(f"{settings} is not a JSON object; restore it from the backup by hand")
     flags = data.get("enabledPlugins")
     current: dict[str, Any] = flags if isinstance(flags, dict) else {}
     restored = sorted(p for p in keep if p in before and current.get(p) != before[p])
@@ -127,7 +133,7 @@ def restore_flags(home: Path, settings: Path, snapshot: Path, keep: Sequence[str
     data["enabledPlugins"] = current
     settings.write_text(json.dumps(data, indent=2) + "\n")
     if read_object(settings).get("enabledPlugins") != current:
-        raise ValueError(f"{settings} did not re-read as written")
+        raise RestoreError(f"{settings} did not re-read as written")
     return restored
 
 
@@ -153,7 +159,11 @@ def main(argv: list[str]) -> int:
             return 2
         sys.stdout.write(json.dumps({"backup": str(dest), "snapshot": str(dest / SNAPSHOT)}) + "\n")
         return 0
-    restored = restore_flags(args.home, args.settings, args.snapshot, args.keep)
+    try:
+        restored = restore_flags(args.home, args.settings, args.snapshot, args.keep)
+    except RestoreError as exc:
+        sys.stderr.write(f"refused: {exc}\n")
+        return 2
     sys.stdout.write(json.dumps({"restored": restored}) + "\n")
     return 0
 

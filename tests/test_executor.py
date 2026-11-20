@@ -15,7 +15,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from executor import BackupError, backup, restore_flags  # noqa: E402
+from executor import BackupError, RestoreError, backup, restore_flags  # noqa: E402
 
 FIXTURE = ROOT / "tests" / "fixtures" / "overlap" / "home"
 STAMP = "2026-11-20-0900"
@@ -164,6 +164,51 @@ class BackupGuardTest(unittest.TestCase):
         self.assertEqual(done.returncode, 2)
         self.assertIn("temporary", done.stderr)
         self.assertFalse(Path("/tmp/ccc-backups-test").exists())
+
+
+class RestoreGuardTest(unittest.TestCase):
+    """restore-flags edits only a settings file that really lives under home."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.home = Path(self.tmp.name) / "home"
+        shutil.copytree(FIXTURE, self.home)
+        self.settings = self.home / ".claude" / "settings.json"
+        dest = backup(self.home, [self.settings], self.home / "backups", STAMP, temp_roots=())
+        self.snapshot = dest / "enabledPlugins.json"
+        self.outside = Path(self.tmp.name) / "elsewhere" / "settings.json"
+        self.outside.parent.mkdir()
+        self.outside.write_text('{"enabledPlugins": {}}\n')
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def test_a_settings_file_outside_home_is_refused(self) -> None:
+        with self.assertRaises(RestoreError) as caught:
+            restore_flags(self.home, self.outside, self.snapshot, ["red-team@community-mkt"])
+        self.assertIn("outside", str(caught.exception))
+        self.assertEqual(self.outside.read_text(), '{"enabledPlugins": {}}\n')
+
+    def test_a_settings_file_symlinked_out_of_home_is_refused(self) -> None:
+        self.settings.unlink()
+        self.settings.symlink_to(self.outside)
+        with self.assertRaises(RestoreError):
+            restore_flags(self.home, self.settings, self.snapshot, ["red-team@community-mkt"])
+        self.assertEqual(self.outside.read_text(), '{"enabledPlugins": {}}\n')
+
+    def test_the_cli_refuses_with_exit_code_2_and_no_traceback(self) -> None:
+        argv = [sys.executable, str(ROOT / "scripts" / "executor.py"), "restore-flags"]
+        argv += ["--home", str(self.home), "--settings", str(self.outside), "--snapshot", str(self.snapshot)]
+        argv += ["--keep", "red-team@community-mkt"]
+        done = subprocess.run(
+            argv,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(done.returncode, 2)
+        self.assertIn("refused:", done.stderr)
+        self.assertIn("outside", done.stderr)
+        self.assertNotIn("Traceback", done.stderr)
 
 
 if __name__ == "__main__":
