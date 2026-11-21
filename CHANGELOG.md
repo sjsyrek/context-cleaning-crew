@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- **Plugin metadata matches the marketplace entry.** `plugin.json` now carries the author email and the same description as the `sjsyrek` marketplace listing, including the three modes and the `python3` requirement.
+
 ## [0.1.1] - 2026-11-21
 
 ### Changed
