@@ -48,6 +48,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Fixed
 
+- **Headless report runs no longer have the inventory command denied.** The skill ran `inventory.py --cwd "$PWD"`, and under `--permission-mode dontAsk` Claude Code 2.1.329 doesn't match a command containing a shell expansion against the `Bash(...)` allow rule. The skill now writes the working directory as a literal path, and a test keeps shell variables out of every command the skill and executor rules give Claude. Found by the live report-run gate.
 - **`restore-flags` writes the settings file atomically** (a temporary file in the same directory, then `os.replace`), keeping the file's mode and writing through a symlink to its target, so a crash mid-write can't leave a truncated settings file.
 - **`restore-flags` refuses a settings file outside home with a clear message and exit code 2**, including a settings path symlinked out of home. It used to crash with a bare `ValueError` traceback. Every other refusal (a file that isn't a JSON object, a snapshot without the file) now exits 2 the same way.
 - **`restore-flags` refuses a snapshot that doesn't cover the settings file.** A snapshot without an entry for the file (or a missing snapshot) used to restore nothing and report success, so a lost flag went unnoticed. An entry holding `{}` (the file had no flags when it was backed up) is still valid and restores nothing.

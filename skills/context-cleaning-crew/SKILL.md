@@ -24,8 +24,10 @@ Parse the first argument as the mode (default `quick`) and the rest as an option
 Run the deterministic, read-only inventory and save its output:
 
 ```sh
-python3 "${CLAUDE_SKILL_DIR}/../../scripts/inventory.py" --cwd "$PWD" --mode <mode> --save
+python3 "${CLAUDE_SKILL_DIR}/../../scripts/inventory.py" --cwd <working directory> --mode <mode> --save
 ```
+
+- Write `<working directory>` as the literal absolute path of your working directory, never `$PWD` or another shell variable: a headless allowlist can't match a command with a shell expansion, so the run would be denied.
 
 - `--mode` applies the mode's rules: `quick`/`full` refresh the marketplace clones (so version drift is real) and run tracker counts (e.g. `bd stats`); `report` refreshes only when the `refresh_marketplaces` option is on and never runs trackers.
 - `--save` writes `<report_dir>/<yyyy-mm-dd>-manifest.json` (creating the directory) and prints the path. `<report_dir>` is the `report_dir` option. When the user names a report directory, use `--out <that dir>/<yyyy-mm-dd>-manifest.json` instead, and write the report there too. Never use a shell redirect or `mkdir`: headless runs allow only the two script commands.
