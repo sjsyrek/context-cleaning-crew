@@ -28,6 +28,7 @@ python3 "${CLAUDE_SKILL_DIR}/../../scripts/inventory.py" --cwd <working director
 ```
 
 - Write `<working directory>` as the literal absolute path of your working directory, never `$PWD` or another shell variable: a headless allowlist can't match a command with a shell expansion, so the run would be denied.
+- Run each script command (`inventory.py`, `compare.py`) **on its own**. Never chain another command onto it with `;`, `&&` or `|`: a headless allowlist allows only the script, so it denies the whole line. Use Read, Grep and Glob for any other check.
 
 - `--mode` applies the mode's rules: `quick`/`full` refresh the marketplace clones (so version drift is real) and run tracker counts (e.g. `bd stats`); `report` refreshes only when the `refresh_marketplaces` option is on and never runs trackers.
 - `--save` writes `<report_dir>/<yyyy-mm-dd>-manifest.json` (creating the directory) and prints the path. `<report_dir>` is the `report_dir` option. When the user names a report directory, use `--out <that dir>/<yyyy-mm-dd>-manifest.json` instead, and write the report there too. Never use a shell redirect or `mkdir`: headless runs allow only the two script commands.
