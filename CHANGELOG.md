@@ -34,6 +34,7 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ### Changed
 
+- **The read-only hash gate lists every allowed path** (`PLAN.md`, "Read-only hash gate"): the plugin's own writes, the marketplace refresh including `known_marketplaces.json`, Claude Code's session bookkeeping, other plugins' hook state, and startup plugin auto-updates, which pass only when stamped before the run's first inventory call. `routine-setup.md` says what to expect when you hash `~/.claude` yourself.
 - **Reports now go to `~/.local/state/context-cleaning-crew/reports/` by default** (the `report_dir` option), not `~/.claude/context-cleaning-crew/reports/`. Claude Code refuses Write-tool writes under `~/.claude` in a headless `dontAsk` run whatever the allow rules say (checked with six rule and directory variants), so a scheduled report run could save its manifest (written by the script) but never its report. The documented headless commands allow the new directory, and their `last-run.json` moves next to it. Existing reports stay where they are; set `report_dir` to keep the old place for interactive runs.
 - **README states that `python3` must be on `PATH`**, since the skill and the SessionStart hook call it by name.
 - **`PLAN.md` defines when step 8 (dogfooding) is done**: a table mapping each finding of the 2026-11-17 manual cleanup to the audit finding that catches it on a rebuild of the pre-cleanup setup (script, reviewer checklist, or not rebuildable from the backup), produced by a report run on a copy.

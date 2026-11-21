@@ -65,5 +65,5 @@ cron's `PATH` is minimal: put the full path to `claude` in the line, or set `PAT
 ## Checking a run
 
 - `permission_denials` in the JSON should be empty. If it isn't, the run stopped short, and the denied commands show what to allow.
-- The manifest and report should be the only new files. To check that for yourself, hash `~/.claude` before and after a run and compare (report mode changes nothing outside the report directory).
+- The manifest and report should be the only new files the plugin writes. To check that for yourself, hash `~/.claude` before and after a run and compare. Expect Claude Code's own changes too: the marketplace refresh (`plugins/marketplaces/**` and `plugins/known_marketplaces.json`), the session's transcript and caches, other plugins' hook state, and plugins Claude Code auto-updates when the session starts. `PLAN.md` ("Read-only hash gate") lists every allowed path.
 - Each run costs roughly $0.20–0.50 of API usage. `--max-budget-usd` caps it.

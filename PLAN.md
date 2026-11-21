@@ -205,7 +205,21 @@ context-cleaning-crew/
 
 ### Step 8: definition of done
 
-Step 8 is done when a report-mode run on a rebuild of the pre-cleanup setup surfaces every row marked **script** or **reviewer** below, and one live report run passes the read-only hash gate (nothing under `~/.claude` changes except the report directory, `update_check`'s state file and, with refresh on, `~/.claude/plugins/marketplaces/**`).
+Step 8 is done when a report-mode run on a rebuild of the pre-cleanup setup surfaces every row marked **script** or **reviewer** below, and one live headless report run (the command in `references/routine-setup.md`) ends with no `permission_denials` and passes the read-only hash gate below.
+
+#### Read-only hash gate
+
+Hash every file under `~/.claude` before and after the run. Each changed, added or removed path must fall in one of these groups; any other path fails the gate.
+
+| Group | Paths | Why it may change |
+|---|---|---|
+| The plugin's own writes | `<report_dir>/**` (outside `~/.claude` by default); `~/.claude/plugins/data/context-cleaning-crew*/last-seen-version` | the manifest and report; `update_check`'s state |
+| Marketplace refresh (only when it's on) | `~/.claude/plugins/marketplaces/**`, `~/.claude/plugins/known_marketplaces.json` | the clones, and their `lastUpdated` stamps |
+| Claude Code's session bookkeeping | the run's transcript under `~/.claude/projects/<cwd>/`, `~/.claude/backups/.claude.json.backup.*`, `~/.claude/cache/**`, `~/.claude/plugins/plugin-directory-cache-v2.json`, `~/.claude/plugins/store/**`, `~/.claude/plugins/synced/**`, `~/.claude/skills/synced/**` | any headless session writes these |
+| Other plugins' hook state | for example `~/.claude/security/**` (security-guidance) | name the plugin; its hooks fire in any session |
+| Claude Code's startup plugin auto-update | `~/.claude/plugins/installed_plugins.json`, `~/.claude/plugins/cache/**` | only if every changed entry's `lastUpdated` is earlier than the run's first inventory call (from the run's transcript). Report mode runs no `claude plugin` command except `marketplace update`, so a later stamp fails the gate |
+
+Passed on 2026-11-21 (second live run, after the `report_dir` move): only these groups changed. The first run's six plugin updates were stamped 05:38:23.9, before its inventory call at 05:38:24.8.
 
 How the table was produced (2026-11-20): the rebuild holds the seven files of `~/.claude/backups/config-cleanup-2026-11-17` at their original paths (byte-identical), plus a reconstructed `~/.claude.json` and plugin registry. On a copy, `scripts/inventory.py --home <copy> --mode report` ran twice, with `--cwd <copy>` (the setup the manual run used, cwd = home) and `--cwd <copy>/Code/spacebar` (so `~/Code/CLAUDE.md` is in the load path). The copy's `projects` keys were rewritten from `/Users/steven/…` to `~/…` first: absolute keys point at the live tree (see open questions).
 
