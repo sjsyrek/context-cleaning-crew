@@ -27,7 +27,7 @@ Or from a shell: `claude plugin install context-cleaning-crew --marketplace sjsy
 ```
 
 - `quick` (default): one reviewer, then a plan card; nothing changes until you approve each item. Run it interactively: headless runs can't edit settings files.
-- `full`: five parallel, read-only reviewer subagents (context economist, overlap analyst, security reviewer, memory curator, workflow advocate), one debate round in which the advocate argues for keeping what you use, then the plan card. No agent teams needed. Grant `SendMessage` in headless runs, or the debate round is skipped.
+- `full`: five parallel, read-only reviewer subagents (context economist, overlap analyst, security reviewer, memory curator, workflow advocate), one debate round in which the advocate argues for keeping what you use, then the plan card. No agent teams needed. Run it interactively, like `quick`; if you run it headless for the review alone, grant `SendMessage`, or the debate round is skipped.
 - `report`: read-only; writes a dated report and exits. Safe to schedule: see `skills/context-cleaning-crew/references/routine-setup.md` for launchd/cron and the minimal headless allowlist.
 
 After a Claude Code update, a SessionStart hook suggests a report run once. On every other start it prints nothing.

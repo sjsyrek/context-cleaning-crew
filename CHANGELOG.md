@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- **README: full mode is interactive, like quick mode.** A headless run can't apply approved settings edits; the README now says so for `full` as well.
+
 ## [0.1.0] - 2026-11-21
 
 ### Added
