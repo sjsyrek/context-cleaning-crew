@@ -1,6 +1,6 @@
 # Scheduled report runs
 
-Report mode is read-only, so it can run unattended. Cloud-scheduled agents can't read this machine's `~/.claude`, so the routine runs **locally** under `launchd` (macOS) or `cron` / a systemd timer (Linux). The plugin's SessionStart hook already suggests a report after each Claude Code update, so a schedule is optional: weekly or monthly is plenty.
+Report mode is read-only, so it can run unattended. Quick and full mode need an interactive session: in a headless `--permission-mode dontAsk` run Claude Code refuses edits to settings files (`~/.claude/**` and a project's `.claude/settings*.json`) whatever the allow rules say, so an approved settings change can't be applied there. Cloud-scheduled agents can't read this machine's `~/.claude`, so the routine runs **locally** under `launchd` (macOS) or `cron` / a systemd timer (Linux). The plugin's SessionStart hook already suggests a report after each Claude Code update, so a schedule is optional: weekly or monthly is plenty.
 
 ## The command
 
