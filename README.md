@@ -34,6 +34,39 @@ After a Claude Code update, a SessionStart hook suggests a report run once. On e
 
 Reports go to `~/.local/state/context-cleaning-crew/reports/`; backups of anything changed go to `~/.claude/backups/context-cleaning-crew/`.
 
+### What the plan card looks like
+
+Cards follow the marketplace's [card standard](https://github.com/sjsyrek/claude-plugins/blob/main/docs/card-standard.md). They're rendered markdown, so Claude Code draws the table borders and stacks the tables on a narrow terminal. An example, for an invented setup:
+
+**Context Cleaning Crew plan** — quick
+
+- **Always-on now:** ~9.4k tokens
+- **After plan:** ~7.1k tokens
+- **Findings:** 4 (1 fix, 2 cut, 1 ask)
+
+**Fix**
+
+| # | Item | Evidence | Action |
+|---|---|---|---|
+| 1 | AGENTS.md vs deny rule | "run `git push --force` to fix history" vs deny `Bash(git push --force*)` | reword the instruction (reversible) |
+
+**Cut**
+
+| # | Item | Evidence | Action |
+|---|---|---|---|
+| 2 | docs-search MCP server | configured twice, same URL, from user config and a plugin | remove the user-config copy (reversible) |
+| 3 | pr-helper plugin | ~1.3k tok always-on, 2 uses in 90 days, built-in `/code-review` | uninstall (reversible) |
+
+**Ask**
+
+| # | Item | Evidence | Action |
+|---|---|---|---|
+| 4 | `~/.claude/settings.json` | `env.NPM_TOKEN` is a plaintext npm token | move it to the keychain; revoke the old token (confirm) |
+
+- **Item 3, keep?** "Its review checklist is tuned to this team's style guide" (advocate)
+
+Reply: `go` | `go except 3` | `keep 2` | `switch 3 to <alt>` | `explain 4` | `abort`
+
 ## Options
 
 Set with `claude plugin configure context-cleaning-crew` (or `/plugin` → manage). Claude Code stores them under `pluginConfigs` in your user settings; the inventory reads them from there and records the effective values, and where each came from, in the manifest.

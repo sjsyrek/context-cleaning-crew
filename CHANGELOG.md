@@ -4,6 +4,10 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+### Changed
+
+- **The plan card follows the plugin family's card standard v1.** It is rendered markdown instead of a fenced block: a bold `**Context Cleaning Crew plan** — <mode>` title, bulleted totals (always-on now, after plan, findings by category), one `# | Item | Evidence | Action` table per non-empty group in fixed order with continuous numbering, flags as words (`(reversible)`, `(confirm)`), the advocate's keep argument as a bullet under the table, and a final `Reply:` line of backticked verbs separated by pipes. Claude Code draws the table borders and stacks the tables on narrow terminals and in screen-reader mode. The card is inline in `SKILL.md`; `references/plan-card.md` keeps the content rules. Report mode is titled `— report mode: proposed, nothing applied`, has no reply line, and still ends with the plain `compare.py` line. The README shows an example plan card. New layout graders in `02-quick-plan-card`: `card-format` and `no-boxes`.
+
 ## [0.1.1] - 2026-11-21
 
 ### Changed
