@@ -130,7 +130,7 @@ Plugin options via `userConfig` in `plugin.json` (the current mechanism, verifie
 | `preferred_marketplaces` | `[]` | Ordered list; when two plugins overlap, prefer one from these. Lets an organization default to its internal marketplace. |
 | `protected` | `[]` | Plugins, servers or memory files never proposed for removal |
 | `backup_dir` | `~/.claude/backups/context-cleaning-crew/` | Persistent, never a temp or scratch directory |
-| `report_dir` | `~/.claude/context-cleaning-crew/reports/` | Where reports land |
+| `report_dir` | `~/.local/state/context-cleaning-crew/reports/` | Where reports land |
 | `usage_window_days` | `90` | "Unused" threshold |
 | `mine_transcripts` | `false` | Opt-in for MCP usage from transcripts |
 | `refresh_marketplaces` | `true` | Refresh marketplace clones before version-drift checks (report mode included) |

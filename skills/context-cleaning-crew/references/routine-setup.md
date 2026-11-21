@@ -10,7 +10,7 @@ claude -p "/context-cleaning-crew:context-cleaning-crew report" \
   --allowedTools 'Bash(python3 *context-cleaning-crew/*scripts/inventory.py*)' \
                  'Bash(python3 *context-cleaning-crew/*scripts/compare.py*)' \
                  Read Glob Grep \
-                 'Edit(~/.claude/context-cleaning-crew/reports/**)' \
+                 'Edit(~/.local/state/context-cleaning-crew/reports/**)' \
   --max-budget-usd 1 \
   --output-format json
 ```
@@ -19,7 +19,7 @@ claude -p "/context-cleaning-crew:context-cleaning-crew report" \
 - **The allowlist is the minimum report mode needs:** the two read-only scripts, file reads, and writes under the report directory only (`Edit(...)` rules cover the Write tool too). Nothing else is allowed: no `claude plugin`, no `claude mcp`, no network.
 - The script patterns end in `*` rather than `* *` because the skill quotes the script path (`python3 ".../inventory.py" --cwd …`). A pattern like `inventory.py *` would never match.
 - Run it from the directory whose project setup you want audited; `$HOME` is used for the user scope.
-- The `Edit(...)` rule names the default `report_dir`. If you set the `report_dir` option elsewhere, change the rule to match, or the report write is denied.
+- The `Edit(...)` rule names the default `report_dir`. If you set the `report_dir` option elsewhere, change the rule to match, or the report write is denied. Keep it outside `~/.claude`: a headless run can't write there with the Write tool whatever the allow rules say, so a report there would never be saved.
 - Report mode refreshes marketplace clones only when the `refresh_marketplaces` option is on. Otherwise the report says version drift was checked against the cached clones.
 
 The run writes `<yyyy-mm-dd>-manifest.json` and `<yyyy-mm-dd>-report.md` to the report directory. The **last line** of the reply is a one-line summary for notifications, for example:
@@ -44,7 +44,7 @@ Save as `~/Library/LaunchAgents/com.example.context-cleaning-crew.plist`, adjust
   <key>ProgramArguments</key>
   <array>
     <string>/bin/zsh</string><string>-lc</string>
-    <string>claude -p "/context-cleaning-crew:context-cleaning-crew report" --permission-mode dontAsk --allowedTools 'Bash(python3 *context-cleaning-crew/*scripts/inventory.py*)' 'Bash(python3 *context-cleaning-crew/*scripts/compare.py*)' Read Glob Grep 'Edit(~/.claude/context-cleaning-crew/reports/**)' --max-budget-usd 1 --output-format json &gt; ~/.claude/context-cleaning-crew/last-run.json</string>
+    <string>claude -p "/context-cleaning-crew:context-cleaning-crew report" --permission-mode dontAsk --allowedTools 'Bash(python3 *context-cleaning-crew/*scripts/inventory.py*)' 'Bash(python3 *context-cleaning-crew/*scripts/compare.py*)' Read Glob Grep 'Edit(~/.local/state/context-cleaning-crew/reports/**)' --max-budget-usd 1 --output-format json &gt; ~/.local/state/context-cleaning-crew/last-run.json</string>
   </array>
   <key>StartCalendarInterval</key>
   <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>9</integer><key>Minute</key><integer>0</integer></dict>
@@ -57,7 +57,7 @@ Save as `~/Library/LaunchAgents/com.example.context-cleaning-crew.plist`, adjust
 ## Linux: cron
 
 ```cron
-0 9 * * 1  cd "$HOME" && claude -p "/context-cleaning-crew:context-cleaning-crew report" --permission-mode dontAsk --allowedTools 'Bash(python3 *context-cleaning-crew/*scripts/inventory.py*)' 'Bash(python3 *context-cleaning-crew/*scripts/compare.py*)' Read Glob Grep 'Edit(~/.claude/context-cleaning-crew/reports/**)' --max-budget-usd 1 --output-format json > "$HOME/.claude/context-cleaning-crew/last-run.json" 2>&1
+0 9 * * 1  cd "$HOME" && claude -p "/context-cleaning-crew:context-cleaning-crew report" --permission-mode dontAsk --allowedTools 'Bash(python3 *context-cleaning-crew/*scripts/inventory.py*)' 'Bash(python3 *context-cleaning-crew/*scripts/compare.py*)' Read Glob Grep 'Edit(~/.local/state/context-cleaning-crew/reports/**)' --max-budget-usd 1 --output-format json > "$HOME/.local/state/context-cleaning-crew/last-run.json" 2>&1
 ```
 
 cron's `PATH` is minimal: put the full path to `claude` in the line, or set `PATH=` at the top of the crontab. A systemd user timer (`OnCalendar=Mon 09:00`, `Persistent=true`) also catches up on runs missed while the machine was off.

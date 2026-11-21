@@ -36,6 +36,13 @@ class DeclaredOptionsTest(unittest.TestCase):
         for key, value in DEFAULTS.as_dict().items():
             self.assertEqual(self.declared[key].get("default"), value, key)
 
+    def test_the_default_report_dir_is_outside_the_claude_config_dir(self) -> None:
+        # Headless runs can't Write under ~/.claude whatever the allow rules say, so a report
+        # there would never be saved by a scheduled run.
+        report_dir = Options().report_dir
+        self.assertFalse(report_dir.startswith("~/.claude/"), report_dir)
+        self.assertTrue(report_dir.startswith("~/"), report_dir)
+
     def test_every_option_has_a_title_description_and_supported_type(self) -> None:
         for key, spec in self.declared.items():
             self.assertTrue(spec.get("title"), key)

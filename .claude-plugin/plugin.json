@@ -41,7 +41,7 @@
       "type": "string",
       "title": "Report directory",
       "description": "Where manifests and dated reports are written.",
-      "default": "~/.claude/context-cleaning-crew/reports/"
+      "default": "~/.local/state/context-cleaning-crew/reports/"
     },
     "usage_window_days": {
       "type": "number",

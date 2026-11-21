@@ -34,7 +34,7 @@ class Options:
     preferred_marketplaces: tuple[str, ...] = ()
     protected: tuple[str, ...] = ()
     backup_dir: str = "~/.claude/backups/context-cleaning-crew/"
-    report_dir: str = "~/.claude/context-cleaning-crew/reports/"
+    report_dir: str = "~/.local/state/context-cleaning-crew/reports/"
     usage_window_days: int = 90
     mine_transcripts: bool = False
     refresh_marketplaces: bool = True

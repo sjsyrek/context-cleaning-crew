@@ -23,7 +23,7 @@ It looks at settings and permissions, CLAUDE.md and AGENTS.md files (including p
 
 After a Claude Code update, a SessionStart hook suggests a report run once. On every other start it prints nothing.
 
-Reports go to `~/.claude/context-cleaning-crew/reports/`; backups of anything changed go to `~/.claude/backups/context-cleaning-crew/`.
+Reports go to `~/.local/state/context-cleaning-crew/reports/`; backups of anything changed go to `~/.claude/backups/context-cleaning-crew/`.
 
 ## Options
 
@@ -34,7 +34,7 @@ Set with `claude plugin configure context-cleaning-crew` (or `/plugin` → manag
 | `preferred_marketplaces` | none | Marketplaces in order of preference; when two plugins do the same job, keep the one from the earliest listed |
 | `protected` | none | Plugins, MCP servers or memory files never proposed for removal |
 | `backup_dir` | `~/.claude/backups/context-cleaning-crew/` | Backups before any change; keep it persistent |
-| `report_dir` | `~/.claude/context-cleaning-crew/reports/` | Manifests and reports |
+| `report_dir` | `~/.local/state/context-cleaning-crew/reports/` | Manifests and reports |
 | `usage_window_days` | `90` | Not used within this many days counts as unused |
 | `mine_transcripts` | off | Count MCP tool calls per server from local transcripts (counts only) |
 | `refresh_marketplaces` | on | Refresh marketplace clones in report mode too (quick and full always do) |
