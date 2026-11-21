@@ -8,8 +8,17 @@ It looks at settings and permissions, CLAUDE.md and AGENTS.md files (including p
 - **Duplicates:** MCP servers configured twice, and plugins a built-in skill now covers (`/code-review`, `/simplify`, `/loop`, `/security-review`) or a synced claude.ai skill duplicates.
 - **Staleness:** your own skills, agents and commands calling tools Claude Code removed (`TeamCreate`, broadcast `SendMessage`, …) — `claude plugin validate` doesn't catch these; plugins behind their marketplace or the CLI they wrap; broken memory links; memory that only loads in one directory but reads as global.
 - **Conflicts:** instructions that contradict each other or a permission rule.
-- **Permission posture:** a blanket `Bash` allow with `acceptEdits`/`bypassPermissions`, redundant rules, rules that match no tool.
+- **Permission posture:** a blanket `Bash` allow with `acceptEdits`/`bypassPermissions`, redundant rules, rules that match no tool; for the other projects you've used, the same as counts per settings file.
 - **Secrets:** plaintext tokens, reported by file, key and type — never the value.
+
+## Installation
+
+```
+/plugin marketplace add sjsyrek/claude-plugins
+/plugin install context-cleaning-crew@sjsyrek
+```
+
+Or from a shell: `claude plugin install context-cleaning-crew --marketplace sjsyrek/claude-plugins`. Requires `python3` on `PATH` (see Requirements).
 
 ## Usage
 
@@ -47,6 +56,14 @@ Set with `claude plugin configure context-cleaning-crew` (or `/plugin` → manag
 - Python 3.9+ (the stock macOS `python3` works). The scripts use only the standard library.
 - `python3` must be on `PATH`: the skill and the SessionStart update hook call it by that name, not by an absolute path.
 - No environment variables are required.
+
+## Known limitations
+
+- **Opaque secrets in MCP arguments.** Tokens in known formats (GitHub, Slack, AWS, `sk-`, …) are redacted everywhere, and URL credentials and query strings are always masked. An opaque value passed as a command-line argument (`--token abc123`) is not recognized; it can appear in the manifest's `mcp.duplicates` target when two servers share that command line. Add an `extra_secret_patterns` regex for such values.
+- **Opaque secrets in the current project's permission rules.** Rule text is redaction-checked against the same patterns, so an opaque value inside an allow rule appears in the manifest verbatim. Other projects' settings report counts only, never rule text.
+- **Auditing a copy of a home directory.** Absolute paths in the copy's `~/.claude.json` (`projects`) and plugin registry point at the live setup, so an audit of a backup also reads the live project settings and plugin files (read-only).
+- **Hook output isn't measured.** The inventory lists hooks and never runs them; the reviewer reads the scripts.
+- Manifests and reports stay on your machine. The scripts upload nothing; their only network use is the marketplace refresh (`claude plugin marketplace update`), which you can turn off with `refresh_marketplaces`. The review itself runs in your Claude Code session, like any other prompt.
 
 ## Development
 
