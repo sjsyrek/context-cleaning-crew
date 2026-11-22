@@ -1,6 +1,6 @@
 {
   "name": "context-cleaning-crew",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Audit a Claude Code setup for context cost, duplicates, stale memory, conflicting instructions, removed tools, version drift and plaintext secrets, then clean it up with per-item approval.",
   "author": {
     "name": "Steven Syrek",

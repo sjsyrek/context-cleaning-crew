@@ -2,7 +2,7 @@
 name: context-cleaning-crew
 description: Audit this Claude Code setup (settings, permissions, CLAUDE.md/AGENTS.md, plugins, skills, hooks, MCP servers, memory) for context cost, duplicates, stale or global-looking memory, conflicting instructions, removed tools, version drift and plaintext secrets, then clean up with per-item approval. Use when the user says "audit my Claude Code setup", "clean up my config", "what's eating my context", "context cleanup", or after a Claude Code update. Modes - quick (default), full, report (read-only).
 argument-hint: "[quick|full|report] [focus]"
-version: 0.1.1
+version: 0.2.0
 ---
 
 # Context Cleaning Crew
