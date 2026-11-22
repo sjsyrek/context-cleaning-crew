@@ -33,4 +33,4 @@ If SendMessage is unavailable (a headless run without it granted), skip the roun
 3. **`breaks`.** A non-empty `breaks` turns the item into `confirm: true` and adds the side effect to its line.
 4. **Renumber** findings 1..N in plan-card order (fix, cut, switch, move, ask, keep). The report uses the same numbers.
 
-Then continue with Phase 3 (the plan card) exactly as in quick mode. The card header says `full`, and each advocate argument appears as the `keep?` line under the item it defends.
+Then continue with Phase 3 (the plan card) exactly as in quick mode. The card title says `full`, and each advocate argument appears as the `Item N, keep?` bullet under the table that holds the item it defends.

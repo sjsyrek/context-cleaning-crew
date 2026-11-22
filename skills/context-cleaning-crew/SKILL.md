@@ -2,7 +2,7 @@
 name: context-cleaning-crew
 description: Audit this Claude Code setup (settings, permissions, CLAUDE.md/AGENTS.md, plugins, skills, hooks, MCP servers, memory) for context cost, duplicates, stale or global-looking memory, conflicting instructions, removed tools, version drift and plaintext secrets, then clean up with per-item approval. Use when the user says "audit my Claude Code setup", "clean up my config", "what's eating my context", "context cleanup", or after a Claude Code update. Modes - quick (default), full, report (read-only).
 argument-hint: "[quick|full|report] [focus]"
-version: 0.1.1
+version: 0.2.0
 ---
 
 # Context Cleaning Crew
@@ -54,9 +54,35 @@ Counts: use the manifest's tracker `command` (it includes closed items); never r
 
 ## Phase 3 — Plan card
 
-Show the plan card from `references/plan-card.md` and **stop**. Accept `go`, `go except 3,7`, `keep 4`, `switch 5 to <alt>`, `explain 6`, `abort`. Items marked `confirm` (secrets, deletion of user-written content, anything irreversible) need an explicit per-item yes even after `go`.
+Show the plan card and **stop**. It follows the plugin family's card standard (`standard: v1`, from `docs/card-standard.md` in the sjsyrek/claude-plugins marketplace): **rendered markdown, never inside a code fence**. Claude Code draws the table borders and stacks the tables on narrow terminals and in screen-reader mode. Post it in exactly this shape, with the content rules in `references/plan-card.md`:
 
-In `report` mode, skip the approval and Phase 4: write the report with every finding as "proposed", then end with the same plan card in chat, headed `REPORT MODE — proposed, nothing applied`, without the reply line. Keep the numbers identical to the report's so the user can later say "apply 3 and 5" in quick mode. Then give the report path and stop.
+**Context Cleaning Crew plan** — <mode>
+
+- **Always-on now:** ~<N>k tokens
+- **After plan:** ~<N>k tokens
+- **Findings:** <N> (<n> fix, <n> cut, …)
+
+**Fix**
+
+| # | Item | Evidence | Action |
+|---|---|---|---|
+| 1 | <short name> | <number, path or rule from the manifest> | <default action> (reversible) |
+
+**Cut**
+
+| # | Item | Evidence | Action |
+|---|---|---|---|
+| 2 | <short name> | <evidence> | <default action> (reversible) |
+
+- **Item 2, keep?** "<advocate's argument>" (advocate)
+
+Reply: `go` | `go except 3` | `keep 2` | `switch 2 to <alt>` | `explain 1` | `abort`
+
+Separate the title from its mode with an em dash (`—`), never a colon or a hyphen. Groups come in this order: fix, cut, switch, move, ask, keep. Leave empty groups out, and number the findings continuously across groups. Leave a blank line before and after every table and list, and before `Reply:`. Draw no boxes or rules: the renderer draws the borders. Flags are words in the Action cell (`(reversible)`, `(confirm)`), and a long path goes in Evidence, not Item. Example arguments on the reply line carry no commas, but the user can still type `go except 3,7`.
+
+Accept `go`, `go except 3,7`, `keep 4`, `switch 5 to <alt>`, `explain 6`, `abort`. Items marked `(confirm)` (secrets, deletion of user-written content, anything irreversible) need an explicit per-item yes even after `go`.
+
+In `report` mode, skip the approval and Phase 4: write the report with every finding as "proposed", then end with the same card in chat, titled `**Context Cleaning Crew plan** — report mode: proposed, nothing applied`, without the reply line. Keep the numbers identical to the report's so the user can later say "apply 3 and 5" in quick mode. Then give the report path and stop. The `compare.py` line stays the last line of the reply, plain.
 
 ## Phase 4 — Execute
 
