@@ -78,7 +78,7 @@ Show the plan card and **stop**. It follows the plugin family's card standard (`
 
 Reply: `go` | `go except 3` | `keep 2` | `switch 2 to <alt>` | `explain 1` | `abort`
 
-Groups come in this order: fix, cut, switch, move, ask, keep. Leave empty groups out, and number the findings continuously across groups. Leave a blank line before and after every table and list, and before `Reply:`. Draw no boxes or rules: the renderer draws the borders. Flags are words in the Action cell (`(reversible)`, `(confirm)`), and a long path goes in Evidence, not Item. Example arguments on the reply line carry no commas, but the user can still type `go except 3,7`.
+Separate the title from its mode with an em dash (`—`), never a colon or a hyphen. Groups come in this order: fix, cut, switch, move, ask, keep. Leave empty groups out, and number the findings continuously across groups. Leave a blank line before and after every table and list, and before `Reply:`. Draw no boxes or rules: the renderer draws the borders. Flags are words in the Action cell (`(reversible)`, `(confirm)`), and a long path goes in Evidence, not Item. Example arguments on the reply line carry no commas, but the user can still type `go except 3,7`.
 
 Accept `go`, `go except 3,7`, `keep 4`, `switch 5 to <alt>`, `explain 6`, `abort`. Items marked `(confirm)` (secrets, deletion of user-written content, anything irreversible) need an explicit per-item yes even after `go`.
 
